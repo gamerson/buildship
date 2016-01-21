@@ -27,7 +27,6 @@ import org.eclipse.buildship.core.CorePlugin;
 import org.eclipse.buildship.core.GradlePluginsRuntimeException;
 import org.eclipse.buildship.core.configuration.GradleProjectNature;
 import org.eclipse.buildship.core.configuration.ProjectConfiguration;
-import org.eclipse.buildship.core.gradle.Specs;
 import org.eclipse.buildship.core.util.predicate.Predicates;
 import org.eclipse.buildship.core.workspace.ExistingDescriptorHandler;
 import org.eclipse.buildship.core.workspace.GradleClasspathContainer;
@@ -108,7 +107,7 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
             if (workspaceProject.isPresent()) {
                 synchronizeWorkspaceProject(project, gradleBuild, workspaceProject.get(), rootRequestAttributes, new SubProgressMonitor(monitor, 1));
             } else {
-                synchronizeNonWorkspaceProject(project, gradleBuild, rootRequestAttributes, workingSets, existingDescriptorHandler, new SubProgressMonitor(monitor, 1));
+                synchronizeNonWorkspaceProject(project, rootRequestAttributes, workingSets, existingDescriptorHandler, new SubProgressMonitor(monitor, 1));
             }
         } catch (CoreException e) {
             String message = String.format("Cannot synchronize Gradle project %s with workspace project.", project.getName());
@@ -124,7 +123,7 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
         try {
             // check if the workspace project is open or not
             if (workspaceProject.isAccessible()) {
-                synchronizeOpenWorkspaceProject(project, gradleBuild, workspaceProject, rootRequestAttributes, new SubProgressMonitor(monitor, 1));
+                synchronizeOpenWorkspaceProject(project, workspaceProject, rootRequestAttributes, new SubProgressMonitor(monitor, 1));
             } else {
                 synchronizeClosedWorkspaceProject();
                 monitor.worked(1);
@@ -134,7 +133,7 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
         }
     }
 
-    private void synchronizeOpenWorkspaceProject(OmniEclipseProject project, OmniEclipseGradleBuild gradleBuild, IProject workspaceProject, FixedRequestAttributes rootRequestAttributes, IProgressMonitor monitor) throws CoreException {
+    private void synchronizeOpenWorkspaceProject(OmniEclipseProject project, IProject workspaceProject, FixedRequestAttributes rootRequestAttributes, IProgressMonitor monitor) throws CoreException {
         monitor.beginTask(String.format("Synchronize Gradle project %s that is open in the workspace", project.getName()), 8);
         try {
             // add Gradle nature, if needed
@@ -147,7 +146,7 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
             }
 
             // update filters
-            List<File> filteredSubFolders = getFilteredSubFolders(project, gradleBuild);
+            List<File> filteredSubFolders = getFilteredSubFolders(project);
             ResourceFilter.attachFilters(workspaceProject, filteredSubFolders, new SubProgressMonitor(monitor, 1));
 
             // update linked resources
@@ -185,7 +184,7 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
         // do not modify closed projects
     }
 
-    private void synchronizeNonWorkspaceProject(OmniEclipseProject project, OmniEclipseGradleBuild gradleBuild, FixedRequestAttributes rootRequestAttributes, List<String> workingSets, ExistingDescriptorHandler existingDescriptorHandler, IProgressMonitor monitor) throws CoreException {
+    private void synchronizeNonWorkspaceProject(OmniEclipseProject project, FixedRequestAttributes rootRequestAttributes, List<String> workingSets, ExistingDescriptorHandler existingDescriptorHandler, IProgressMonitor monitor) throws CoreException {
         monitor.beginTask(String.format("Synchronize Gradle project %s that is not yet in the workspace", project.getName()), 2);
         try {
             IProject workspaceProject;
@@ -195,12 +194,12 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
             if (projectDescription.isPresent()) {
                 if (existingDescriptorHandler.shouldDeleteDescriptor()) {
                     deleteProjectDescriptor(project);
-                    workspaceProject = addNewEclipseProjectToWorkspace(project, gradleBuild, rootRequestAttributes, new SubProgressMonitor(monitor, 1));
+                    workspaceProject = addNewEclipseProjectToWorkspace(project, rootRequestAttributes, new SubProgressMonitor(monitor, 1));
                 } else {
                     workspaceProject = addExistingEclipseProjectToWorkspace(project, projectDescription.get(), rootRequestAttributes, new SubProgressMonitor(monitor, 1));
                 }
             } else {
-                workspaceProject = addNewEclipseProjectToWorkspace(project, gradleBuild, rootRequestAttributes, new SubProgressMonitor(monitor, 1));
+                workspaceProject = addNewEclipseProjectToWorkspace(project, rootRequestAttributes, new SubProgressMonitor(monitor, 1));
             }
 
             // notify the listeners that a new IProject is available in the workspace
@@ -243,7 +242,7 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
         }
     }
 
-    private IProject addNewEclipseProjectToWorkspace(OmniEclipseProject project, OmniEclipseGradleBuild gradleBuild, FixedRequestAttributes rootRequestAttributes, IProgressMonitor monitor) throws CoreException {
+    private IProject addNewEclipseProjectToWorkspace(OmniEclipseProject project, FixedRequestAttributes rootRequestAttributes, IProgressMonitor monitor) throws CoreException {
         monitor.beginTask(String.format("Add new Eclipse project for Gradle project %s to the workspace", project.getName()), 6);
         try {
             // create a new Eclipse project in the workspace for the current Gradle project
@@ -255,7 +254,7 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
             CorePlugin.projectConfigurationManager().saveProjectConfiguration(projectConfiguration, workspaceProject);
 
             // attach filters
-            List<File> filteredSubFolders = getFilteredSubFolders(project, gradleBuild);
+            List<File> filteredSubFolders = getFilteredSubFolders(project);
             ResourceFilter.attachFilters(workspaceProject, filteredSubFolders, new SubProgressMonitor(monitor, 1));
 
             // set linked resources
@@ -280,10 +279,10 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
         }
     }
 
-    private List<File> getFilteredSubFolders(OmniEclipseProject project, OmniEclipseGradleBuild gradleBuild) {
+    private List<File> getFilteredSubFolders(OmniEclipseProject project) {
         return ImmutableList.<File>builder().
                 addAll(collectChildProjectLocations(project)).
-                add(getBuildDirectory(gradleBuild, project)).
+                add(getBuildDirectory(project)).
                 add(getDotGradleDirectory(project)).build();
     }
 
@@ -297,9 +296,9 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
         }).toList();
     }
 
-    private File getBuildDirectory(OmniEclipseGradleBuild eclipseGradleBuild, OmniEclipseProject project) {
-        Optional<OmniGradleProject> gradleProject = eclipseGradleBuild.getRootProject().tryFind(Specs.gradleProjectMatchesProjectPath(project.getPath()));
-        Maybe<File> buildScript = gradleProject.get().getBuildDirectory();
+    private File getBuildDirectory(OmniEclipseProject project) {
+        OmniGradleProject gradleProject = project.getGradleProject();
+        Maybe<File> buildScript = gradleProject.getBuildDirectory();
         if (buildScript.isPresent() && buildScript.get() != null) {
             return buildScript.get();
         } else {

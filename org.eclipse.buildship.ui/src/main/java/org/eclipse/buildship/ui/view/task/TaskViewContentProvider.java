@@ -109,7 +109,7 @@ public final class TaskViewContentProvider implements ITreeContentProvider {
             // flatten the tree of Gradle projects to a list, similar
             // to how Eclipse projects look in the Eclipse Project explorer
             List<ProjectNode> allProjectNodes = Lists.newArrayList();
-            collectProjectNodesRecursively(gradleBuild.getRootEclipseProject(), gradleBuild.getRootProject(), null, allProjectNodes);
+            collectProjectNodesRecursively(gradleBuild.getRootEclipseProject(), gradleBuild.getRootEclipseProject().getGradleProject(), null, allProjectNodes);
             return allProjectNodes;
         }
     }
