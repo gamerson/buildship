@@ -659,7 +659,7 @@ class DefaultWorkspaceGradleOperationsTest extends BuildshipTestSpecification {
         Job job = new Job('') {
             protected IStatus run(IProgressMonitor monitor) {
                 Job.jobManager.beginRule(LegacyEclipseSpockTestHelper.workspace.root, monitor)
-                new DefaultWorkspaceGradleOperations().synchronizeGradleBuildWithWorkspace(gradleModel.build, gradleModel.attributes, [], existingDescriptorHandler, new NullProgressMonitor())
+                new DefaultWorkspaceGradleOperations().synchronizeGradleBuildWithWorkspace(gradleModel.build, [], existingDescriptorHandler, new NullProgressMonitor())
                 Job.jobManager.endRule(LegacyEclipseSpockTestHelper.workspace.root)
                 Status.OK_STATUS
             }

@@ -11,6 +11,9 @@
 
 package org.eclipse.buildship.core.gradle;
 
+import java.io.File;
+import java.io.IOException;
+
 import org.gradle.api.specs.Spec;
 
 import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
@@ -38,6 +41,29 @@ public final class Specs {
             @Override
             public boolean isSatisfiedBy(OmniEclipseProject candidate) {
                 return candidate.getPath().equals(projectPath);
+            }
+        };
+    }
+
+    /**
+     * Returns a spec that matches if the project's root project directory is equal to the given directory.
+     */
+    public static Spec<OmniEclipseProject> eclipseProjectIsSubProjectOf(final File rootProjectDir) {
+        final File canonicalRootProjectDir;
+        try {
+            canonicalRootProjectDir = rootProjectDir.getCanonicalFile();
+        } catch (IOException e) {
+            throw new IllegalArgumentException(e);
+        }
+        return new Spec<OmniEclipseProject>() {
+
+            @Override
+            public boolean isSatisfiedBy(OmniEclipseProject candidate) {
+                try {
+                    return candidate.getRoot().getProjectDirectory().getCanonicalFile().equals(canonicalRootProjectDir);
+                } catch (IOException e) {
+                    throw new IllegalArgumentException(e);
+                }
             }
         };
     }
