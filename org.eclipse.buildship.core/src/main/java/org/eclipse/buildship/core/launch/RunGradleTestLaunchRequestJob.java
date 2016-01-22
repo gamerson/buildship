@@ -18,7 +18,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.gradleware.tooling.toolingclient.Request;
+import com.gradleware.tooling.toolingclient.SimpleRequest;
 import com.gradleware.tooling.toolingclient.TestConfig;
 import org.eclipse.buildship.core.CorePlugin;
 import org.eclipse.buildship.core.console.ProcessDescription;
@@ -66,7 +66,7 @@ public final class RunGradleTestLaunchRequestJob extends BaseLaunchRequestJob {
     }
 
     private String createProcessName(File workingDir) {
-        return String.format("%s [Gradle Project] %s in %s (%s)", collectTestTaskNames(this.testDescriptors), Joiner.on(' ').join(collectSimpleDisplayNames(testDescriptors)),
+        return String.format("%s [Gradle Project] %s in %s (%s)", collectTestTaskNames(this.testDescriptors), Joiner.on(' ').join(collectSimpleDisplayNames(this.testDescriptors)),
                 workingDir.getAbsolutePath(), DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(new Date()));
     }
 
@@ -91,7 +91,7 @@ public final class RunGradleTestLaunchRequestJob extends BaseLaunchRequestJob {
     }
 
     @Override
-    protected Request<Void> createRequest() {
+    protected SimpleRequest<Void> createRequest() {
         return CorePlugin.toolingClient().newTestLaunchRequest(TestConfig.forTests(this.testDescriptors));
     }
 

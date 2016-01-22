@@ -16,7 +16,7 @@ import com.google.common.base.Joiner;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.gradleware.tooling.toolingclient.Request;
+import com.gradleware.tooling.toolingclient.SimpleRequest;
 import com.gradleware.tooling.toolingclient.TestConfig;
 import org.eclipse.buildship.core.CorePlugin;
 import org.eclipse.buildship.core.console.ProcessDescription;
@@ -61,15 +61,15 @@ public final class RunGradleJvmTestLaunchRequestJob extends BaseLaunchRequestJob
     }
 
     private String createProcessName(File workingDir) {
-        return String.format("[Gradle Project] %s in %s (%s)", Joiner.on(' ').join(collectSimpleNames(testTargets)),
+        return String.format("[Gradle Project] %s in %s (%s)", Joiner.on(' ').join(collectSimpleNames(this.testTargets)),
                 workingDir.getAbsolutePath(),
                 DateFormat.getDateTimeInstance(DateFormat.MEDIUM, DateFormat.MEDIUM).format(new Date()));
     }
 
     @Override
-    protected Request<Void> createRequest() {
+    protected SimpleRequest<Void> createRequest() {
         TestConfig.Builder testConfig = new TestConfig.Builder();
-        for (TestTarget testTarget : testTargets) {
+        for (TestTarget testTarget : this.testTargets) {
             testTarget.apply(testConfig);
         }
         return CorePlugin.toolingClient().newTestLaunchRequest(testConfig.build());
@@ -77,7 +77,7 @@ public final class RunGradleJvmTestLaunchRequestJob extends BaseLaunchRequestJob
 
     @Override
     protected void writeExtraConfigInfo(OutputStreamWriter writer) throws IOException {
-        writer.write(String.format("%s: %s%n", CoreMessages.RunConfiguration_Label_Tests, Joiner.on(' ').join(collectQualifiedNames(testTargets))));
+        writer.write(String.format("%s: %s%n", CoreMessages.RunConfiguration_Label_Tests, Joiner.on(' ').join(collectQualifiedNames(this.testTargets))));
     }
 
     /**
