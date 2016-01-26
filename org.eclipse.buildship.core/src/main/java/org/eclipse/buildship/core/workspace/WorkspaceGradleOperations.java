@@ -11,13 +11,12 @@
 
 package org.eclipse.buildship.core.workspace;
 
-import com.gradleware.tooling.toolingmodel.OmniEclipseGradleBuild;
+import java.util.List;
+
 import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
-import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
-
-import java.util.List;
 
 /**
  * Provides operations related to querying and modifying the Gradle specific parts of
@@ -36,14 +35,14 @@ public interface WorkspaceGradleOperations {
      * </li>
      * <li>Synchronize all Gradle projects of the Gradle build with the Eclipse workspace project counterparts:
      * <ul>
-     * <li>As outlined in {@link #synchronizeGradleProjectWithWorkspaceProject(OmniEclipseProject, OmniEclipseGradleBuild, FixedRequestAttributes, List, IProgressMonitor)}</li>
+     * <li>As outlined in {@link #synchronizeGradleProjectWithWorkspaceProject(OmniEclipseProject, GradleBuildInWorkspace, List, ExistingDescriptorHandler, IProgressMonitor)}</li>
      * </ul>
      * </li>
      * </ol>
      *
      * @param gradleBuild           the Gradle build to synchronize
      * @param workingSets           the working set to assign the imported projects to
-     * @param existingDescriptorHandler whether to keep or delete existing .project files
+     * @param existingDescriptorHandler whether to keep or delete existing project descriptors
      * @param monitor               the monitor to report the progress on
      */
     void synchronizeGradleBuildWithWorkspace(GradleBuildInWorkspace gradleBuild, List<String> workingSets, ExistingDescriptorHandler existingDescriptorHandler, IProgressMonitor monitor);
@@ -124,7 +123,7 @@ public interface WorkspaceGradleOperations {
      * <ol>
      * <li>If the workspace project contains the Gradle nature and there is a matching Gradle project at the location of the workspace project
      * <ul>
-     * <li>As outlined in {@link #synchronizeGradleProjectWithWorkspaceProject(OmniEclipseProject, OmniEclipseGradleBuild, FixedRequestAttributes, List, IProgressMonitor)}</li>
+     * <li>As outlined in {@link #synchronizeGradleProjectWithWorkspaceProject(OmniEclipseProject, GradleBuildInWorkspace, List, IProgressMonitor)}</li>
      * </ul></li>
      * <li>In all other cases
      * <ul>
