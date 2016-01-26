@@ -69,11 +69,8 @@ class SynchronizeJavaWorkspaceProjectJobTest extends ProjectImportSpecification 
     }
 
     private def executeSynchronizeJavaWorkspaceProjectJobAndWait(IProject project) {
-        // reload Gradle model
-        ProjectConfiguration configuration = CorePlugin.projectConfigurationManager().readProjectConfiguration(project)
-        CorePlugin.modelRepositoryProvider().getModelRepository(configuration.requestAttributes).fetchEclipseGradleBuild(new TransientRequestAttributes(false, System.out, System.err, System.in, [] as List, [] as List, GradleConnector.newCancellationTokenSource().token()), FetchStrategy.FORCE_RELOAD)
         // synchronize the project
-        def job = new SynchronizeJavaWorkspaceProjectJob(JavaCore.create(project))
+        def job = new SynchronizeJavaWorkspaceProjectJob(JavaCore.create(project), FetchStrategy.FORCE_RELOAD)
         job.schedule()
         job.join()
     }

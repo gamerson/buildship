@@ -16,6 +16,7 @@ package org.eclipse.buildship.ui.workspace;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import org.eclipse.buildship.core.util.collections.AdapterFunction;
+import org.eclipse.buildship.core.workspace.RefreshGradleProjectsJob;
 import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob;
 import org.eclipse.buildship.ui.util.predicate.Predicates;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -41,7 +42,7 @@ public final class ProjectSynchronizer {
             return;
         }
 
-        SynchronizeGradleProjectsJob synchronizeJob = new SynchronizeGradleProjectsJob(selectedProjects);
+        SynchronizeGradleProjectsJob synchronizeJob = new RefreshGradleProjectsJob();
         synchronizeJob.schedule();
     }
 

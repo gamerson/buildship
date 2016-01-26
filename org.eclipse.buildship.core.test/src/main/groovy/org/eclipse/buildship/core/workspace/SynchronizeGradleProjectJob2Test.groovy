@@ -30,7 +30,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
         setup:
         def applyJavaPlugin = false
         File projectLocation = newProject(projectDescriptorExists, applyJavaPlugin)
-        SynchronizeGradleProjectJob job = newRefreshGradleProjectJob(projectLocation)
+        ImportGradleProjectJob job = newRefreshGradleProjectJob(projectLocation)
 
         when:
         job.schedule()
@@ -46,7 +46,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
     def "Project descriptors should be created iff they don't already exist"(boolean applyJavaPlugin, boolean projectDescriptorExists, String descriptorComment) {
         setup:
         File rootProject = newProject(projectDescriptorExists, applyJavaPlugin)
-        SynchronizeGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
 
         when:
         job.schedule()
@@ -68,7 +68,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
     def "Imported projects always have Gradle builder and nature"(boolean projectDescriptorExists) {
         setup:
         File rootProject = newProject(projectDescriptorExists, false)
-        SynchronizeGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
 
         when:
         job.schedule()
@@ -86,7 +86,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
     def "Imported parent projects have filters to hide the content of the children and the build folders"() {
         setup:
         File rootProject = newMultiProject()
-        SynchronizeGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
 
         when:
         job.schedule()
@@ -106,7 +106,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
         File rootProject = newMultiProject()
 
         when:
-        SynchronizeGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
         job.schedule()
         job.join()
 
@@ -135,7 +135,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
         project.delete(false, true, new NullProgressMonitor())
 
         when:
-        SynchronizeGradleProjectJob job = newRefreshGradleProjectJob(new File(workspaceRootLocation, "projectname"))
+        ImportGradleProjectJob job = newRefreshGradleProjectJob(new File(workspaceRootLocation, "projectname"))
         job.schedule()
         job.join()
 
@@ -146,7 +146,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
     def "Can import project located in workspace folder and with custom root name"() {
         setup:
         File rootProject = newProjectWithCustomNameInWorkspaceFolder()
-        SynchronizeGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
 
         when:
         job.schedule()
@@ -213,7 +213,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
     def newRefreshGradleProjectJob(File location) {
         def distribution = GradleDistributionWrapper.from(GradleDistribution.fromBuild()).toGradleDistribution()
         def rootRequestAttributes = new FixedRequestAttributes(location, null, distribution, null, ImmutableList.of(), ImmutableList.of())
-        new SynchronizeGradleProjectJob(rootRequestAttributes, [], AsyncHandler.NO_OP)
+        new ImportGradleProjectJob(rootRequestAttributes, [], AsyncHandler.NO_OP)
     }
 
 }

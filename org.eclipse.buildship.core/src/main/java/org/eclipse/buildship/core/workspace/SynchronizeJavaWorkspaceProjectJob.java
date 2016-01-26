@@ -12,8 +12,11 @@
 
 package org.eclipse.buildship.core.workspace;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
+import org.gradle.jarjar.com.google.common.collect.Sets;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.ProgressListener;
 
@@ -48,10 +51,16 @@ import org.eclipse.buildship.core.workspace.internal.DefaultGradleBuildInWorkspa
 public final class SynchronizeJavaWorkspaceProjectJob extends ToolingApiWorkspaceJob {
 
     private final IJavaProject project;
+    private final FetchStrategy fetchStrategy;
 
     public SynchronizeJavaWorkspaceProjectJob(IJavaProject project) {
+        this(project, FetchStrategy.LOAD_IF_NOT_CACHED);
+    }
+
+    public SynchronizeJavaWorkspaceProjectJob(IJavaProject project, FetchStrategy fetchStrategy) {
         super(String.format("Synchronize Java workspace project %s", project.getProject().getName()), false);
         this.project = project;
+        this.fetchStrategy = fetchStrategy;
     }
 
     @Override
@@ -95,8 +104,12 @@ public final class SynchronizeJavaWorkspaceProjectJob extends ToolingApiWorkspac
         List<ProgressListener> progressListeners = ImmutableList.<ProgressListener>of(new DelegatingProgressListener(monitor));
         TransientRequestAttributes transientAttributes = new TransientRequestAttributes(false, streams.getOutput(), streams.getError(), null, progressListeners,
                 ImmutableList.<org.gradle.tooling.events.ProgressListener>of(), token);
-        CompositeModelRepository repository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository(fixedRequestAttributes);
-        return repository.fetchEclipseWorkspace(transientAttributes, FetchStrategy.LOAD_IF_NOT_CACHED);
+        Set<FixedRequestAttributes> allRequestAttributes = Sets.newLinkedHashSet();
+        List<IProject> allProjects = Arrays.asList(ResourcesPlugin.getWorkspace().getRoot().getProjects());
+        allRequestAttributes.addAll(getUniqueRootProjects(allProjects));
+        allRequestAttributes.add(fixedRequestAttributes);
+        CompositeModelRepository repository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository(allRequestAttributes.toArray(new FixedRequestAttributes[0]));
+        return repository.fetchEclipseWorkspace(transientAttributes, this.fetchStrategy);
     }
 
 }

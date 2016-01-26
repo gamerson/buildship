@@ -9,7 +9,7 @@ import org.eclipse.core.resources.IResource
 import org.eclipse.core.runtime.NullProgressMonitor
 import org.eclipse.jdt.core.JavaCore
 
-class SynchronizeGradleProjectJobTest extends ProjectImportSpecification {
+class RefreshGradleProjectJobTest extends ProjectImportSpecification {
 
     def setup() {
         executeProjectImportAndWait(createSampleProject())
@@ -22,7 +22,7 @@ class SynchronizeGradleProjectJobTest extends ProjectImportSpecification {
         """
 
         when:
-        new SynchronizeGradleProjectsJob([findProject('moduleA')] as List).schedule()
+        new RefreshGradleProjectsJob().schedule()
         waitForJobsToFinish()
 
         then:
@@ -36,7 +36,7 @@ class SynchronizeGradleProjectJobTest extends ProjectImportSpecification {
         """
 
         when:
-        new SynchronizeGradleProjectsJob([findProject('moduleB')] as List).schedule()
+        new RefreshGradleProjectsJob().schedule()
         waitForJobsToFinish()
 
         then:
@@ -58,7 +58,7 @@ class SynchronizeGradleProjectJobTest extends ProjectImportSpecification {
         folder('sample', 'moduleC', 'src', 'main', 'java')
 
         when:
-        new SynchronizeGradleProjectsJob([findProject('moduleB')] as List).schedule()
+        new RefreshGradleProjectsJob().schedule()
         waitForJobsToFinish()
 
         then:
@@ -92,7 +92,7 @@ class SynchronizeGradleProjectJobTest extends ProjectImportSpecification {
         waitForJobsToFinish()
 
         when:
-        new SynchronizeGradleProjectsJob([findProject('sample')] as List).schedule()
+        new RefreshGradleProjectsJob().schedule()
         waitForJobsToFinish()
 
         then:
