@@ -20,7 +20,7 @@ import com.gradleware.tooling.toolingclient.SimpleRequest;
 import com.gradleware.tooling.toolingmodel.OmniBuildEnvironment;
 import com.gradleware.tooling.toolingmodel.repository.FetchStrategy;
 import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
-import com.gradleware.tooling.toolingmodel.repository.ModelRepository;
+import com.gradleware.tooling.toolingmodel.repository.SimpleModelRepository;
 import com.gradleware.tooling.toolingmodel.repository.TransientRequestAttributes;
 import org.eclipse.buildship.core.CorePlugin;
 import org.eclipse.buildship.core.GradlePluginsRuntimeException;
@@ -153,7 +153,7 @@ public abstract class BaseLaunchRequestJob extends ToolingApiJob {
                                                        IProgressMonitor monitor) {
         monitor.beginTask("Load Gradle Build Environment", IProgressMonitor.UNKNOWN);
         try {
-            ModelRepository repository = CorePlugin.modelRepositoryProvider().getModelRepository(fixedRequestAttributes);
+            SimpleModelRepository repository = CorePlugin.modelRepositoryProvider().getModelRepository(fixedRequestAttributes);
             return repository.fetchBuildEnvironment(transientRequestAttributes, FetchStrategy.FORCE_RELOAD);
         } finally {
             monitor.done();

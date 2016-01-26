@@ -20,7 +20,7 @@ import com.gradleware.tooling.toolingmodel.OmniEclipseWorkspace;
 import com.gradleware.tooling.toolingmodel.repository.CompositeModelRepository
 import com.gradleware.tooling.toolingmodel.repository.FetchStrategy
 import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes
-import com.gradleware.tooling.toolingmodel.repository.ModelRepository
+import com.gradleware.tooling.toolingmodel.repository.SimpleModelRepository
 import com.gradleware.tooling.toolingmodel.repository.TransientRequestAttributes
 
 import org.eclipse.buildship.core.CorePlugin

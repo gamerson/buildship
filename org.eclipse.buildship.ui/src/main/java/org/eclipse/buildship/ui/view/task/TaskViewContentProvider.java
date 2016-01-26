@@ -32,7 +32,7 @@ import com.gradleware.tooling.toolingmodel.OmniTaskSelector;
 import com.gradleware.tooling.toolingmodel.Path;
 import com.gradleware.tooling.toolingmodel.repository.FetchStrategy;
 import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
-import com.gradleware.tooling.toolingmodel.repository.ModelRepository;
+import com.gradleware.tooling.toolingmodel.repository.SimpleModelRepository;
 import com.gradleware.tooling.toolingmodel.repository.ModelRepositoryProvider;
 import com.gradleware.tooling.toolingmodel.repository.TransientRequestAttributes;
 
@@ -119,7 +119,7 @@ public final class TaskViewContentProvider implements ITreeContentProvider {
         List<org.gradle.tooling.events.ProgressListener> noTypedProgressListeners = ImmutableList.of();
         CancellationToken cancellationToken = GradleConnector.newCancellationTokenSource().token();
         TransientRequestAttributes transientAttributes = new TransientRequestAttributes(false, null, null, null, noProgressListeners, noTypedProgressListeners, cancellationToken);
-        ModelRepository repository = this.modelRepositoryProvider.getModelRepository(fixedRequestAttributes);
+        SimpleModelRepository repository = this.modelRepositoryProvider.getModelRepository(fixedRequestAttributes);
         return repository.fetchEclipseGradleBuild(transientAttributes, FetchStrategy.FROM_CACHE_ONLY);
     }
 
