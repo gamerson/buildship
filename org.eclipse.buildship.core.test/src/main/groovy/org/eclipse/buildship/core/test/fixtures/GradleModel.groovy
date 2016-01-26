@@ -24,7 +24,8 @@ import com.gradleware.tooling.toolingmodel.repository.ModelRepository
 import com.gradleware.tooling.toolingmodel.repository.TransientRequestAttributes
 
 import org.eclipse.buildship.core.CorePlugin
-import org.eclipse.buildship.core.workspace.GradleBuildInWorkspace;
+import org.eclipse.buildship.core.workspace.GradleBuildInWorkspace
+import org.eclipse.buildship.core.workspace.internal.DefaultGradleBuildInWorkspace;;
 
 
 /**
@@ -74,6 +75,6 @@ abstract class GradleModel {
         FixedRequestAttributes attributes = new FixedRequestAttributes(rootProjectFolder, null, GradleDistribution.fromBuild(), null, [], [])
         CompositeModelRepository modelRepository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository(attributes)
         OmniEclipseWorkspace workspace = modelRepository.fetchEclipseWorkspace(new TransientRequestAttributes(false, System.out, System.err, System.in, [], [], GradleConnector.newCancellationTokenSource().token()), FetchStrategy.FORCE_RELOAD)
-        new GradleModel(new GradleBuildInWorkspace(workspace, attributes)) {}
+        new GradleModel(DefaultGradleBuildInWorkspace.from(workspace, attributes)) {}
     }
 }

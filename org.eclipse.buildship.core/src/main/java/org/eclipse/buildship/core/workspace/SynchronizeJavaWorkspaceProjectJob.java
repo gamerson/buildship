@@ -40,6 +40,7 @@ import org.eclipse.buildship.core.configuration.ProjectConfiguration;
 import org.eclipse.buildship.core.console.ProcessStreams;
 import org.eclipse.buildship.core.util.progress.DelegatingProgressListener;
 import org.eclipse.buildship.core.util.progress.ToolingApiWorkspaceJob;
+import org.eclipse.buildship.core.workspace.internal.DefaultGradleBuildInWorkspace;
 
 /**
  * Synchronizes a Java workspace project with its Gradle counterpart.
@@ -83,7 +84,7 @@ public final class SynchronizeJavaWorkspaceProjectJob extends ToolingApiWorkspac
             ProjectConfiguration configuration = CorePlugin.projectConfigurationManager().readProjectConfiguration(project);
             rootRequestAttributes = configuration.getRequestAttributes();
             OmniEclipseWorkspace gradleWorkspace = fetchEclipseGradleBuild(rootRequestAttributes, monitor, token);
-            gradleBuild = new GradleBuildInWorkspace(gradleWorkspace, rootRequestAttributes);
+            gradleBuild = DefaultGradleBuildInWorkspace.from(gradleWorkspace, rootRequestAttributes);
         }
 
         CorePlugin.workspaceGradleOperations().synchronizeWorkspaceProject(project, gradleBuild, monitor);

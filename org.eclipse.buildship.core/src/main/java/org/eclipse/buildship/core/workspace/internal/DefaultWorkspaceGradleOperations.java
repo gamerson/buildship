@@ -12,29 +12,24 @@
 
 package org.eclipse.buildship.core.workspace.internal;
 
+import java.io.File;
+import java.util.List;
+import java.util.Set;
+
+import org.gradle.api.specs.Spec;
+
 import com.google.common.base.Function;
 import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import com.gradleware.tooling.toolingmodel.OmniEclipseGradleBuild;
+
 import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
-import com.gradleware.tooling.toolingmodel.OmniEclipseWorkspace;
 import com.gradleware.tooling.toolingmodel.OmniGradleProject;
 import com.gradleware.tooling.toolingmodel.OmniJavaSourceSettings;
 import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
 import com.gradleware.tooling.toolingmodel.util.Maybe;
-import org.eclipse.buildship.core.CorePlugin;
-import org.eclipse.buildship.core.GradlePluginsRuntimeException;
-import org.eclipse.buildship.core.configuration.GradleProjectNature;
-import org.eclipse.buildship.core.configuration.ProjectConfiguration;
-import org.eclipse.buildship.core.gradle.Specs;
-import org.eclipse.buildship.core.util.predicate.Predicates;
-import org.eclipse.buildship.core.workspace.ExistingDescriptorHandler;
-import org.eclipse.buildship.core.workspace.GradleBuildInWorkspace;
-import org.eclipse.buildship.core.workspace.GradleClasspathContainer;
-import org.eclipse.buildship.core.workspace.ProjectCreatedEvent;
-import org.eclipse.buildship.core.workspace.WorkspaceGradleOperations;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.CoreException;
@@ -46,11 +41,17 @@ import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.core.JavaModelException;
 import org.eclipse.jdt.launching.JavaRuntime;
-import org.gradle.api.specs.Spec;
 
-import java.io.File;
-import java.util.List;
-import java.util.Set;
+import org.eclipse.buildship.core.CorePlugin;
+import org.eclipse.buildship.core.GradlePluginsRuntimeException;
+import org.eclipse.buildship.core.configuration.GradleProjectNature;
+import org.eclipse.buildship.core.configuration.ProjectConfiguration;
+import org.eclipse.buildship.core.util.predicate.Predicates;
+import org.eclipse.buildship.core.workspace.ExistingDescriptorHandler;
+import org.eclipse.buildship.core.workspace.GradleBuildInWorkspace;
+import org.eclipse.buildship.core.workspace.GradleClasspathContainer;
+import org.eclipse.buildship.core.workspace.ProjectCreatedEvent;
+import org.eclipse.buildship.core.workspace.WorkspaceGradleOperations;
 
 /**
  * Default implementation of the {@link WorkspaceGradleOperations} interface.

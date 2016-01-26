@@ -6,34 +6,26 @@ import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
 import com.gradleware.tooling.toolingmodel.OmniEclipseWorkspace;
 import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
 
-import org.eclipse.buildship.core.gradle.Specs;
-
 /**
  * Represents a set of {@link OmniEclipseProject} within an {@link OmniEclipseWorkspace} which
  * belong to the same root project.
  */
-public class GradleBuildInWorkspace {
+public interface GradleBuildInWorkspace {
 
-    private List<OmniEclipseProject> eclipseProjects;
-    private OmniEclipseWorkspace workspace;
-    private FixedRequestAttributes requestAttributes;
+    /**
+     * The projects in the workspace that were derived from the root project specified by
+     * {@link #getRequestAttributes()}
+     */
+    List<OmniEclipseProject> getEclipseProjects();
 
-    public GradleBuildInWorkspace(OmniEclipseWorkspace workspace, FixedRequestAttributes requestAttributes) {
-        this.eclipseProjects = workspace.filter(Specs.eclipseProjectIsSubProjectOf(requestAttributes.getProjectDir()));
-        this.workspace = workspace;
-        this.requestAttributes = requestAttributes;
-    }
+    /**
+     * The workspace that this build is a part of.
+     */
+    OmniEclipseWorkspace getWorkspace();
 
-    public List<OmniEclipseProject> getEclipseProjects() {
-        return this.eclipseProjects;
-    }
-
-    public OmniEclipseWorkspace getWorkspace() {
-        return this.workspace;
-    }
-
-    public FixedRequestAttributes getRequestAttributes() {
-        return this.requestAttributes;
-    }
+    /**
+     * The request attributes that were used to fetch the Eclipse projects of this build.
+     */
+    FixedRequestAttributes getRequestAttributes();
 
 }

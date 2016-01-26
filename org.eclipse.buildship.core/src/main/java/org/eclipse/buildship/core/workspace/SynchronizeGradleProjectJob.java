@@ -36,6 +36,7 @@ import org.eclipse.buildship.core.console.ProcessStreams;
 import org.eclipse.buildship.core.util.progress.AsyncHandler;
 import org.eclipse.buildship.core.util.progress.DelegatingProgressListener;
 import org.eclipse.buildship.core.util.progress.ToolingApiWorkspaceJob;
+import org.eclipse.buildship.core.workspace.internal.DefaultGradleBuildInWorkspace;
 
 /**
  * Forces the reload of the given Gradle (multi-)project and synchronizes it with the Eclipse workspace.
@@ -78,7 +79,7 @@ public final class SynchronizeGradleProjectJob extends ToolingApiWorkspaceJob {
         manager.beginRule(workspaceRoot, monitor);
         try {
             OmniEclipseWorkspace gradleWorkspace = forceReloadEclipseWorkspace(this.rootRequestAttributes, new SubProgressMonitor(monitor, 40));
-            GradleBuildInWorkspace gradleBuild = new GradleBuildInWorkspace(gradleWorkspace, this.rootRequestAttributes);
+            GradleBuildInWorkspace gradleBuild = DefaultGradleBuildInWorkspace.from(gradleWorkspace, this.rootRequestAttributes);
             CorePlugin.workspaceGradleOperations().synchronizeGradleBuildWithWorkspace(gradleBuild, this.workingSets, this.existingDescriptorHandler, new SubProgressMonitor(monitor, 50));
         } finally {
             manager.endRule(workspaceRoot);
