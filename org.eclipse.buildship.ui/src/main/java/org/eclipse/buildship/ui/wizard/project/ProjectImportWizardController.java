@@ -176,7 +176,6 @@ public class ProjectImportWizardController {
             @Override
             public void done(IJobChangeEvent event) {
                 if (event.getResult().isOK()) {
-                    //TODO refresh all other projects, so substitution can occur
                     ensureGradleViewsAreVisible();
                 }
             }
