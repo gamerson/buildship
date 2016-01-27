@@ -25,12 +25,11 @@ import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
 
 import org.eclipse.buildship.core.util.progress.AsyncHandler;
 
 /**
- * Re(-imports) the  given Gradle (multi-)project by force-reloading its configuration and synchronizing it with the Eclipse workspace.
+ * (Re-)Imports the  given Gradle (multi-)project by force-reloading its configuration and synchronizing it with the Eclipse workspace.
  */
 public final class ImportGradleProjectJob extends SynchronizeGradleProjectsJob {
 
@@ -89,7 +88,7 @@ public final class ImportGradleProjectJob extends SynchronizeGradleProjectsJob {
 
     @Override
     protected void beforeSynchronization(IProgressMonitor progressMonitor) {
-        this.initializer.run(new SubProgressMonitor(progressMonitor, 10), getToken());
+        this.initializer.run(progressMonitor, getToken());
     }
 
 }

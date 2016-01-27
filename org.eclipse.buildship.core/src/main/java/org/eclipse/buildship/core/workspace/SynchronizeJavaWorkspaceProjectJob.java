@@ -46,7 +46,8 @@ import org.eclipse.buildship.core.util.progress.ToolingApiWorkspaceJob;
 import org.eclipse.buildship.core.workspace.internal.DefaultGradleBuildInWorkspace;
 
 /**
- * Synchronizes a Java workspace project with its Gradle counterpart.
+ * Synchronizes a Java workspace project with its Gradle counterpart. In contrast to
+ * {@link RefreshGradleProjectsJob}, this works on individual Eclipse projects instead of Gradle builds.
  */
 public final class SynchronizeJavaWorkspaceProjectJob extends ToolingApiWorkspaceJob {
 
