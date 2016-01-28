@@ -25,25 +25,16 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 
 /**
- * Finds the root projects that the given Eclipse projects belong to and synchronizes each of these
- * root projects with the Eclipse workspace.
+ * Synchronizes each Gradle root project with the Eclipse workspace.
  */
 public class RefreshGradleProjectsJob extends SynchronizeGradleProjectsJob {
 
-    private List<IProject> projects;
-
-    public RefreshGradleProjectsJob(List<IProject> projects) {
+    public RefreshGradleProjectsJob() {
         super("Synchronize workspace projects with Gradle counterparts", true);
-        this.projects = projects;
     }
 
     @Override
     protected Set<FixedRequestAttributes> getBuildsToSynchronize() {
-        return getUniqueRootProjects(this.projects);
-    }
-
-    @Override
-    protected Set<FixedRequestAttributes> getBuildsInComposite() {
         List<IProject> allProjects = Arrays.asList(ResourcesPlugin.getWorkspace().getRoot().getProjects());
         return getUniqueRootProjects(allProjects);
     }

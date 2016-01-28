@@ -55,8 +55,9 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
         manager.beginRule(workspaceRoot, monitor);
         try {
-            OmniEclipseWorkspace gradleWorkspace = forceRoadEclipseWorkspace(getBuildsInComposite(), new SubProgressMonitor(monitor, 40));
-            for (FixedRequestAttributes attributes : getBuildsToSynchronize()) {
+            Set<FixedRequestAttributes> requestAttributes = getBuildsToSynchronize();
+            OmniEclipseWorkspace gradleWorkspace = forceRoadEclipseWorkspace(requestAttributes, new SubProgressMonitor(monitor, 40));
+            for (FixedRequestAttributes attributes : requestAttributes) {
                 GradleBuildInWorkspace gradleBuild = DefaultGradleBuildInWorkspace.from(gradleWorkspace, attributes);
                 CorePlugin.workspaceGradleOperations().synchronizeGradleBuildWithWorkspace(
                     gradleBuild,
@@ -80,11 +81,6 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
      * The request attributes of the root projects to synchronize.
      */
     protected abstract Set<FixedRequestAttributes> getBuildsToSynchronize();
-
-    /**
-     * The request attributes of the root projects that make up the composite used for synchronization.
-     */
-    protected abstract Set<FixedRequestAttributes> getBuildsInComposite();
 
     /**
      * Determines what should happen if a project is newly imported to the workspace, but already had a project descriptor.

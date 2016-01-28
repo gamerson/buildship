@@ -42,7 +42,7 @@ public final class ProjectSynchronizer {
             return;
         }
 
-        SynchronizeGradleProjectsJob synchronizeJob = new RefreshGradleProjectsJob(selectedProjects);
+        SynchronizeGradleProjectsJob synchronizeJob = new RefreshGradleProjectsJob();
         synchronizeJob.schedule();
     }
 

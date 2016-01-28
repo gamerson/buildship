@@ -55,17 +55,12 @@ public final class ImportGradleProjectJob extends SynchronizeGradleProjectsJob {
     }
 
     @Override
-    protected Set<FixedRequestAttributes> getBuildsInComposite() {
+    protected Set<FixedRequestAttributes> getBuildsToSynchronize() {
         Set<FixedRequestAttributes> builds = Sets.newLinkedHashSet();
         List<IProject> allProjects = Arrays.asList(ResourcesPlugin.getWorkspace().getRoot().getProjects());
         builds.addAll(getUniqueRootProjects(allProjects));
         builds.add(this.rootRequestAttributes);
         return builds;
-    }
-
-    @Override
-    protected Set<FixedRequestAttributes> getBuildsToSynchronize() {
-        return getBuildsInComposite();
     }
 
     @Override
