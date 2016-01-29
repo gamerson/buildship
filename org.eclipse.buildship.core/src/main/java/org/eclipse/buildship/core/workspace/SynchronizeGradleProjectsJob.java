@@ -56,6 +56,9 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
         manager.beginRule(workspaceRoot, monitor);
         try {
             Set<FixedRequestAttributes> requestAttributes = getBuildsToSynchronize();
+            if (requestAttributes.isEmpty()) {
+                return;
+            }
             OmniEclipseWorkspace gradleWorkspace = forceRoadEclipseWorkspace(requestAttributes, new SubProgressMonitor(monitor, 40));
             for (FixedRequestAttributes attributes : requestAttributes) {
                 GradleBuildInWorkspace gradleBuild = DefaultGradleBuildInWorkspace.from(gradleWorkspace, attributes);
