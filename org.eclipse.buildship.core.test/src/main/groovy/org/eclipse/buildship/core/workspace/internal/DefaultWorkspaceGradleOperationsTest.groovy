@@ -48,6 +48,25 @@ class DefaultWorkspaceGradleOperationsTest extends BuildshipTestSpecification {
         modifiedTimes == folder('sample-project').listFiles().collect{ it.lastModified() }
     }
 
+    def "If workspace project exists at model location, then the project name is updated"() {
+        setup:
+        IProject project = newOpenProject('sample-project')
+        fileStructure().create {
+            file 'sample-project/build.gradle'
+            file 'sample-project/settings.gradle', 'rootProject.name = "custom-name"'
+        }
+        GradleModel gradleModel = loadGradleModel('sample-project')
+        gradleModel.build.eclipseProjects.head().name = "custom-name"
+
+        when:
+        executeSynchronizeGradleProjectWithWorkspaceProjectAndWait(gradleModel)
+
+        then:
+        CorePlugin.workspaceOperations().allProjects.size() == 1
+        !findProject('sample-project')
+        findProject('custom-name')
+    }
+
     def "If workspace project exists at model location, then the Gradle nature is set"() {
         setup:
         IProject project = newOpenProject('sample-project')
@@ -270,6 +289,25 @@ class DefaultWorkspaceGradleOperationsTest extends BuildshipTestSpecification {
         then:
         CorePlugin.workspaceOperations().allProjects.size() == 1
         findProject('sample-project')
+    }
+
+    def "If .project file exists at the model location, then the project name is updated"() {
+        setup:
+        IProject project = newOpenProject('sample-project')
+        CorePlugin.workspaceOperations().deleteAllProjects(new NullProgressMonitor())
+        fileStructure().create {
+            file 'sample-project/build.gradle'
+            file 'sample-project/settings.gradle', 'rootProject.name = "custom-name"'
+        }
+        GradleModel gradleModel = loadGradleModel('sample-project')
+
+        when:
+        executeSynchronizeGradleProjectWithWorkspaceProjectAndWait(gradleModel)
+
+        then:
+        CorePlugin.workspaceOperations().allProjects.size() == 1
+        !findProject('sample-project')
+        findProject('custom-name')
     }
 
     def "If .project file exists at the model location, then the Gradle nature is set"() {

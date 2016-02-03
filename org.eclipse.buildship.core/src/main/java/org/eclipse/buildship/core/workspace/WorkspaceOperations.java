@@ -169,4 +169,20 @@ public interface WorkspaceOperations {
      */
     void removeBuildCommand(IProject project, String name, IProgressMonitor monitor);
 
+    /**
+     * Renames the project.
+     * <p/>
+     * If the project is located directly under the workspace root, then no change is performed.
+     * <p/>
+     * Important note: The passed in project instance is no longer valid after this operation.
+     * Use the returned project instance to work with the renamed project.
+     *
+     * @param project the target project
+     * @param newName the name to rename the project to
+     * @param monitor the monitor to report progress on
+     * @return the renamed project
+     * @throws org.eclipse.buildship.core.GradlePluginsRuntimeException if the operation fails or a
+     *             project already exists in the workspace with the same name
+     */
+    IProject renameProject(IProject project, String newName, IProgressMonitor monitor);
 }

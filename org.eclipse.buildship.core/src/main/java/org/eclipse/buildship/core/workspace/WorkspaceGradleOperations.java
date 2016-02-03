@@ -58,6 +58,7 @@ public interface WorkspaceGradleOperations {
      * <li>If the workspace project is open:
      * <ul>
      * <li>the Gradle nature is set</li>
+     * <li>the project name is updated</li>
      * <li>the Gradle settings file is written</li>
      * <li>the Gradle resource filter is set</li>
      * <li>the linked resources are set</li>
@@ -83,6 +84,7 @@ public interface WorkspaceGradleOperations {
      * decides whether to keep or delete that existing file. If it is deleted, the synchronization happens as if there was none. If it is kept, the synchronization is as follows:
      * <ul>
      * <li>the Eclipse project is added to the workspace</li>
+     * <li>the project name is updated</li>
      * <li>the Gradle nature is set</li>
      * <li>the Gradle settings file is written</li>
      * <li>the workspace project is further configured in case of a Java Gradle project and the workspace project having the Java nature set
