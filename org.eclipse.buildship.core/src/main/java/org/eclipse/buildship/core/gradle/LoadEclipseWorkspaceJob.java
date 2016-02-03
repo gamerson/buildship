@@ -97,7 +97,7 @@ public final class LoadEclipseWorkspaceJob extends ToolingApiJob {
             List<ProgressListener> listeners = ImmutableList.<ProgressListener> of(new DelegatingProgressListener(monitor));
             TransientRequestAttributes transientAttributes = new TransientRequestAttributes(false, streams.getOutput(), streams.getError(), streams.getInput(), listeners,
                     ImmutableList.<org.gradle.tooling.events.ProgressListener> of(), getToken());
-            CompositeModelRepository repository = this.modelRepositoryProvider.getCompositeModelRepository(fixedRequestAttributes.toArray(new FixedRequestAttributes[0]));
+            CompositeModelRepository repository = this.modelRepositoryProvider.getCompositeModelRepository(fixedRequestAttributes);
             return repository.fetchEclipseWorkspace(transientAttributes, this.modelFetchStrategy);
         } finally {
             monitor.done();

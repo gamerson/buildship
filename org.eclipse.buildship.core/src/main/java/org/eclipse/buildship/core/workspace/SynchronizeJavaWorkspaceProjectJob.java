@@ -107,11 +107,11 @@ public final class SynchronizeJavaWorkspaceProjectJob extends ToolingApiWorkspac
         List<ProgressListener> progressListeners = ImmutableList.<ProgressListener>of(new DelegatingProgressListener(monitor));
         TransientRequestAttributes transientAttributes = new TransientRequestAttributes(false, streams.getOutput(), streams.getError(), null, progressListeners,
                 ImmutableList.<org.gradle.tooling.events.ProgressListener>of(), token);
-        Set<FixedRequestAttributes> allRequestAttributes = Sets.newLinkedHashSet();
+        Set<FixedRequestAttributes> allRequestAttributes = Sets.newHashSet();
         List<IProject> allProjects = Arrays.asList(ResourcesPlugin.getWorkspace().getRoot().getProjects());
         allRequestAttributes.addAll(getUniqueRootProjects(allProjects));
         allRequestAttributes.add(fixedRequestAttributes);
-        CompositeModelRepository repository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository(allRequestAttributes.toArray(new FixedRequestAttributes[0]));
+        CompositeModelRepository repository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository(allRequestAttributes);
         return repository.fetchEclipseWorkspace(transientAttributes, this.fetchStrategy);
     }
 

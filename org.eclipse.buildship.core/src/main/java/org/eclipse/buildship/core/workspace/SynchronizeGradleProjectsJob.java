@@ -106,7 +106,7 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
             List<ProgressListener> listeners = ImmutableList.<ProgressListener> of(new DelegatingProgressListener(monitor));
             TransientRequestAttributes transientAttributes = new TransientRequestAttributes(false, streams.getOutput(), streams.getError(), streams.getInput(), listeners,
                     ImmutableList.<org.gradle.tooling.events.ProgressListener> of(), getToken());
-            CompositeModelRepository repository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository(fixedRequestAttributes.toArray(new FixedRequestAttributes[0]));
+            CompositeModelRepository repository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository(fixedRequestAttributes);
             return repository.fetchEclipseWorkspace(transientAttributes, FetchStrategy.FORCE_RELOAD);
         } finally {
             monitor.done();

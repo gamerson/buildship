@@ -98,7 +98,7 @@ public final class TaskViewContentProvider implements ITreeContentProvider {
     }
 
     private List<ProjectNode> createTopLevelProjectNodes(Set<ProjectConfiguration> projectConfigurations) {
-        Set<FixedRequestAttributes> requestAttributes = Sets.newLinkedHashSet();
+        Set<FixedRequestAttributes> requestAttributes = Sets.newHashSet();
         for (ProjectConfiguration projectConfiguration : projectConfigurations) {
             requestAttributes.add(projectConfiguration.getRequestAttributes());
         }
@@ -126,7 +126,7 @@ public final class TaskViewContentProvider implements ITreeContentProvider {
         List<org.gradle.tooling.events.ProgressListener> noTypedProgressListeners = ImmutableList.of();
         CancellationToken cancellationToken = GradleConnector.newCancellationTokenSource().token();
         TransientRequestAttributes transientAttributes = new TransientRequestAttributes(false, null, null, null, noProgressListeners, noTypedProgressListeners, cancellationToken);
-        CompositeModelRepository repository = this.modelRepositoryProvider.getCompositeModelRepository(fixedRequestAttributes.toArray(new FixedRequestAttributes[0]));
+        CompositeModelRepository repository = this.modelRepositoryProvider.getCompositeModelRepository(fixedRequestAttributes);
         return repository.fetchEclipseWorkspace(transientAttributes, FetchStrategy.FROM_CACHE_ONLY);
     }
 
