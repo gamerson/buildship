@@ -59,7 +59,7 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
             if (requestAttributes.isEmpty()) {
                 return;
             }
-            OmniEclipseWorkspace gradleWorkspace = forceRoadEclipseWorkspace(requestAttributes, new SubProgressMonitor(monitor, 40));
+            OmniEclipseWorkspace gradleWorkspace = forceReloadEclipseWorkspace(requestAttributes, new SubProgressMonitor(monitor, 40));
             for (FixedRequestAttributes attributes : requestAttributes) {
                 GradleBuildInWorkspace gradleBuild = DefaultGradleBuildInWorkspace.from(gradleWorkspace, attributes);
                 CorePlugin.workspaceGradleOperations().synchronizeGradleBuildWithWorkspace(
@@ -99,7 +99,7 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
         return Lists.<String> newArrayList();
     }
 
-    private OmniEclipseWorkspace forceRoadEclipseWorkspace(Set<FixedRequestAttributes> fixedRequestAttributes, IProgressMonitor monitor) {
+    private OmniEclipseWorkspace forceReloadEclipseWorkspace(Set<FixedRequestAttributes> fixedRequestAttributes, IProgressMonitor monitor) {
         monitor.beginTask("Loading workspace model", IProgressMonitor.UNKNOWN);
         try {
             ProcessStreams streams = CorePlugin.processStreamsProvider().getBackgroundJobProcessStreams();
