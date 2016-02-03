@@ -14,6 +14,7 @@ package org.eclipse.buildship.core.gradle;
 import java.io.File;
 import java.io.IOException;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
 
 import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
@@ -53,7 +54,7 @@ public final class Specs {
         try {
             canonicalRootProjectDir = rootProjectDir.getCanonicalFile();
         } catch (IOException e) {
-            throw new IllegalArgumentException(e);
+            throw new UncheckedIOException(e);
         }
         return new Spec<OmniEclipseProject>() {
 
@@ -62,7 +63,7 @@ public final class Specs {
                 try {
                     return candidate.getRoot().getProjectDirectory().getCanonicalFile().equals(canonicalRootProjectDir);
                 } catch (IOException e) {
-                    throw new IllegalArgumentException(e);
+                    throw new UncheckedIOException(e);
                 }
             }
         };
