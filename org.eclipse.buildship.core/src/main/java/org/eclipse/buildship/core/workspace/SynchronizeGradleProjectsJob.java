@@ -14,10 +14,10 @@ package org.eclipse.buildship.core.workspace;
 import java.util.List;
 import java.util.Set;
 
-import org.gradle.jarjar.com.google.common.collect.Lists;
 import org.gradle.tooling.ProgressListener;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 import com.gradleware.tooling.toolingmodel.OmniEclipseWorkspace;
 import com.gradleware.tooling.toolingmodel.repository.CompositeModelRepository;

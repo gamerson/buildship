@@ -14,12 +14,12 @@ package org.eclipse.buildship.core.gradle;
 import java.util.List;
 import java.util.Set;
 
-import org.gradle.jarjar.com.google.common.collect.Sets;
 import org.gradle.tooling.ProgressListener;
 
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.FutureCallback;
 
 import com.gradleware.tooling.toolingmodel.OmniEclipseWorkspace;

@@ -14,7 +14,6 @@ package org.eclipse.buildship.ui.view.task;
 import java.util.List;
 import java.util.Set;
 
-import org.gradle.jarjar.com.google.common.collect.Sets;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProgressListener;
@@ -24,6 +23,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.FutureCallback;
 
 import com.gradleware.tooling.toolingmodel.OmniEclipseProject;

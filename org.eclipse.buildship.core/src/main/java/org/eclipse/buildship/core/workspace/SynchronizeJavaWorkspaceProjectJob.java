@@ -16,11 +16,11 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-import org.gradle.jarjar.com.google.common.collect.Sets;
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.ProgressListener;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
 import com.gradleware.tooling.toolingmodel.OmniEclipseWorkspace;
 import com.gradleware.tooling.toolingmodel.repository.CompositeModelRepository;
