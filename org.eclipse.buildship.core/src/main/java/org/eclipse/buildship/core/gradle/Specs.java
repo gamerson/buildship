@@ -33,15 +33,15 @@ public final class Specs {
      * Returns a spec that matches if the the project path of a {@code OmniEclipseProject} instance
      * matches the given project path.
      *
-     * @param projectPath the project path to match
+     * @param projectDir the project path to match
      * @return the spec
      */
-    public static Spec<OmniEclipseProject> eclipseProjectMatchesProjectPath(final Path projectPath) {
+    public static Spec<OmniEclipseProject> eclipseProjectMatchesProjectDirectory(final File projectDir) {
         return new Spec<OmniEclipseProject>() {
 
             @Override
             public boolean isSatisfiedBy(OmniEclipseProject candidate) {
-                return candidate.getPath().equals(projectPath);
+                return candidate.getProjectDirectory().equals(projectDir);
             }
         };
     }
