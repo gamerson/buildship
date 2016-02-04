@@ -13,6 +13,9 @@ import org.eclipse.buildship.core.util.variable.ExpressionUtils
 import org.eclipse.core.resources.IWorkspace
 import org.eclipse.core.runtime.IPath
 import org.eclipse.core.runtime.NullProgressMonitor
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.JavaCore;
+
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -208,6 +211,41 @@ class SynchronizeGradleProjectJob2Test extends Specification {
         projects.length == 2
         workspaceRoot.getProject('projectA').getLocation().lastSegment() == "projectB"
         workspaceRoot.getProject('projectB').getLocation().lastSegment() == "projectA"
+    }
+
+    def "Project dependencies stay intact when renaming a project"() {
+        setup:
+        ['projectA', 'projectB'].each { name ->
+            def root = tempFolder.newFolder(name)
+            new File(root, 'settings.gradle') << "include 'sub1', 'sub2'"
+            new File(root, 'build.gradle') << """
+                subprojects {
+                    apply plugin: 'java'
+                }
+                project('sub2') {
+                    dependencies {
+                        compile project(':sub1')
+                    }
+                }
+            """
+            new File(root, 'sub1/src/main/java').mkdirs()
+            new File(root, 'sub2/src/main/java').mkdirs()
+            def importRoot = newRefreshGradleProjectJob(root)
+            importRoot.schedule()
+            importRoot.join()
+        }
+
+        when:
+        def refreshWorkspace = new RefreshGradleProjectsJob()
+        refreshWorkspace.schedule()
+        refreshWorkspace.join()
+
+        then:
+        def workspaceRoot = LegacyEclipseSpockTestHelper.workspace.root
+        def sub2= workspaceRoot.getProject('projectA-sub2')
+        JavaCore.create(sub2).resolvedClasspath.find { entry ->
+            entry.entryKind == IClasspathEntry.CPE_PROJECT && entry.path.toString() == '/projectA-sub1'
+        }
     }
 
     def newProject(boolean projectDescriptorExists, boolean applyJavaPlugin) {

@@ -73,7 +73,7 @@ abstract class GradleModel {
      */
     static GradleModel fromProject(File rootProjectFolder) {
         FixedRequestAttributes attributes = new FixedRequestAttributes(rootProjectFolder, null, GradleDistribution.fromBuild(), null, [], [])
-        CompositeModelRepository modelRepository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository(attributes)
+        CompositeModelRepository modelRepository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository([attributes] as Set)
         OmniEclipseWorkspace workspace = modelRepository.fetchEclipseWorkspace(new TransientRequestAttributes(false, System.out, System.err, System.in, [], [], GradleConnector.newCancellationTokenSource().token()), FetchStrategy.FORCE_RELOAD)
         new GradleModel(DefaultGradleBuildInWorkspace.from(workspace, attributes)) {}
     }
