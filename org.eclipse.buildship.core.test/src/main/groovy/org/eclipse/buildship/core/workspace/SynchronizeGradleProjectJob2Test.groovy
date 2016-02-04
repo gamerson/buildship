@@ -163,6 +163,53 @@ class SynchronizeGradleProjectJob2Test extends Specification {
         rootProject.deleteDir()
     }
 
+    def "Duplicate project names are de-duplicated"() {
+        setup:
+        def projectA = tempFolder.newFolder('projectA')
+        new File(projectA, 'settings.gradle') << "rootProject.name = 'foo'"
+        def projectB = tempFolder.newFolder('projectB')
+        new File(projectB, 'settings.gradle') << "rootProject.name = 'foo'"
+        def importA = newRefreshGradleProjectJob(projectA)
+        def importB = newRefreshGradleProjectJob(projectB)
+
+        when:
+        importA.schedule()
+        importA.join()
+        importB.schedule()
+        importB.join()
+
+        then:
+        def projects = LegacyEclipseSpockTestHelper.workspace.root.projects
+        projects.length == 2
+        projects*.name as Set == ['foo1', 'foo2'] as Set
+    }
+
+    def "Projects can be renamed in cycles"() {
+        setup:
+        def projectA = tempFolder.newFolder('projectA')
+        def projectB = tempFolder.newFolder('projectB')
+        def importA = newRefreshGradleProjectJob(projectA)
+        def importB = newRefreshGradleProjectJob(projectB)
+        def refreshWorkspace = new RefreshGradleProjectsJob()
+
+        when:
+        importA.schedule()
+        importA.join()
+        importB.schedule()
+        importB.join()
+        new File(projectA, 'settings.gradle') << "rootProject.name = 'projectB'"
+        new File(projectB, 'settings.gradle') << "rootProject.name = 'projectA'"
+        refreshWorkspace.schedule()
+        refreshWorkspace.join()
+
+        then:
+        def workspaceRoot = LegacyEclipseSpockTestHelper.workspace.root
+        def projects = workspaceRoot.projects
+        projects.length == 2
+        workspaceRoot.getProject('projectA').getLocation().lastSegment() == "projectB"
+        workspaceRoot.getProject('projectB').getLocation().lastSegment() == "projectA"
+    }
+
     def newProject(boolean projectDescriptorExists, boolean applyJavaPlugin) {
         def root = tempFolder.newFolder('simple-project')
         new File(root, 'build.gradle') << (applyJavaPlugin ? 'apply plugin: "java"' : '')
@@ -210,7 +257,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
         root
     }
 
-    def newRefreshGradleProjectJob(File location) {
+    def ImportGradleProjectJob newRefreshGradleProjectJob(File location) {
         def distribution = GradleDistributionWrapper.from(GradleDistribution.fromBuild()).toGradleDistribution()
         def rootRequestAttributes = new FixedRequestAttributes(location, null, distribution, null, ImmutableList.of(), ImmutableList.of())
         new ImportGradleProjectJob(rootRequestAttributes, [], AsyncHandler.NO_OP)
