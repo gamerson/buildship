@@ -31,6 +31,7 @@ import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -38,6 +39,7 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
 import org.eclipse.jdt.core.JavaCore;
@@ -113,6 +115,8 @@ public final class DefaultWorkspaceOperations implements WorkspaceOperations {
     public void deleteAllProjects(IProgressMonitor monitor) {
         monitor = MoreObjects.firstNonNull(monitor, new NullProgressMonitor());
         monitor.beginTask("Delete all Eclipse projects from workspace", 100);
+        IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+        Job.getJobManager().beginRule(workspaceRoot, monitor);
         try {
             List<IProject> allProjects = getAllProjects();
             for (IProject project : allProjects) {
@@ -126,6 +130,7 @@ public final class DefaultWorkspaceOperations implements WorkspaceOperations {
                 }
             }
         } finally {
+            Job.getJobManager().endRule(workspaceRoot);
             monitor.done();
         }
     }

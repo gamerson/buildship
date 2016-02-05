@@ -11,7 +11,11 @@
 
 package org.eclipse.buildship.ui.view.task;
 
+import java.util.Set;
+
 import com.google.common.base.Preconditions;
+
+import com.gradleware.tooling.toolingmodel.repository.FetchStrategy;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResourceChangeListener;
@@ -35,23 +39,21 @@ public final class TaskViewUpdatingProjectChangeListener extends WorkspaceProjec
     }
 
     @Override
-    protected void notifyAboutProjectAddition(final IProject project) {
-        PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
+    protected void notifyAboutProjectAdditions(Set<IProject> projects) {
+        refreshTasksView();
+    }
 
-            @Override
-            public void run() {
-                TaskViewUpdatingProjectChangeListener.this.taskView.handleProjectAddition(project);
-            }
-        });
+    private void refreshTasksView() {
+        refreshTasksView();
     }
 
     @Override
-    protected void notifyAboutProjectRemoval(final IProject project) {
+    protected void notifyAboutProjectRemovals(Set<IProject> projects) {
         PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
 
             @Override
             public void run() {
-                TaskViewUpdatingProjectChangeListener.this.taskView.handleProjectRemoval(project);
+                TaskViewUpdatingProjectChangeListener.this.taskView.reload(FetchStrategy.LOAD_IF_NOT_CACHED);
             }
         });
     }

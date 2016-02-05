@@ -15,6 +15,8 @@
  */
 package org.eclipse.buildship.core.workspace;
 
+import java.util.Set;
+
 import com.gradleware.tooling.toolingmodel.OmniEclipseWorkspace;
 import com.gradleware.tooling.toolingmodel.repository.FetchStrategy;
 
@@ -23,7 +25,8 @@ import org.eclipse.core.resources.IProject;
 /**
  * Refreshes the {@link OmniEclipseWorkspace} when a project is deleted.
  * 
- * Refresh on project addition is not necessary, as that is already handled by the {@link ImportGradleProjectJob}.
+ * Refresh on project addition is not necessary, as that is already handled by the
+ * {@link ImportGradleProjectJob}.
  * 
  * @author Stefan Oehme
  *
@@ -31,11 +34,11 @@ import org.eclipse.core.resources.IProject;
 public class GradleWorkspaceRefreshingProjectRemovalListener extends WorkspaceProjectChangeListener {
 
     @Override
-    protected void notifyAboutProjectAddition(IProject resource) {
+    protected void notifyAboutProjectAdditions(Set<IProject> addedProjects) {
     }
 
     @Override
-    protected void notifyAboutProjectRemoval(IProject resource) {
+    protected void notifyAboutProjectRemovals(Set<IProject> deletedProjects) {
         new RefreshGradleProjectsJob(FetchStrategy.LOAD_IF_NOT_CACHED, NewProjectHandler.DONT_IMPORT).schedule();
     }
 
