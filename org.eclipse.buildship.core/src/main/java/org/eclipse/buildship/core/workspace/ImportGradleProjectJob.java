@@ -34,19 +34,13 @@ public final class ImportGradleProjectJob extends SynchronizeGradleProjectsJob {
 
     private final FixedRequestAttributes rootRequestAttributes;
     private final NewProjectHandler newProjectHandler;
-    private final ExistingDescriptorHandler existingDescriptorHandler;
     private final AsyncHandler initializer;
 
     public ImportGradleProjectJob(FixedRequestAttributes rootRequestAttributes, NewProjectHandler newProjectHandler, AsyncHandler initializer) {
-        this(rootRequestAttributes, newProjectHandler, ExistingDescriptorHandler.ALWAYS_KEEP, initializer);
-    }
-
-    public ImportGradleProjectJob(FixedRequestAttributes rootRequestAttributes, NewProjectHandler newProjectHandler, ExistingDescriptorHandler existingDescriptorHandler, AsyncHandler initializer) {
         super(String.format("Synchronize Gradle root project at %s with workspace", Preconditions.checkNotNull(rootRequestAttributes).getProjectDir().getAbsolutePath()), false, FetchStrategy.FORCE_RELOAD);
 
         this.rootRequestAttributes = Preconditions.checkNotNull(rootRequestAttributes);
         this.newProjectHandler = newProjectHandler;
-        this.existingDescriptorHandler = Preconditions.checkNotNull(existingDescriptorHandler);
         this.initializer = Preconditions.checkNotNull(initializer);
 
         // explicitly show a dialog with the progress while the project synchronization is in process
@@ -61,16 +55,7 @@ public final class ImportGradleProjectJob extends SynchronizeGradleProjectsJob {
         builds.add(this.rootRequestAttributes);
         return builds;
     }
-
-    @Override
-    protected ExistingDescriptorHandler getExistingDescriptorHandler(GradleBuildInWorkspace gradleBuild) {
-        if (gradleBuild.getRequestAttributes().equals(this.rootRequestAttributes)) {
-            return this.existingDescriptorHandler;
-        } else {
-            return super.getExistingDescriptorHandler(gradleBuild);
-        }
-    }
-
+    
     @Override
     protected NewProjectHandler getNewProjectHandler(GradleBuildInWorkspace gradleBuild) {
         if (gradleBuild.getRequestAttributes().equals(this.rootRequestAttributes)) {

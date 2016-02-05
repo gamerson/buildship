@@ -18,9 +18,12 @@ import org.gradle.tooling.ProgressListener;
 import com.google.common.util.concurrent.FutureCallback;
 
 import com.gradleware.tooling.toolingmodel.OmniBuildEnvironment;
+import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
 import com.gradleware.tooling.toolingmodel.OmniGradleBuildStructure;
 import com.gradleware.tooling.toolingmodel.util.Pair;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -34,7 +37,7 @@ import org.eclipse.buildship.core.projectimport.ProjectImportConfiguration;
 import org.eclipse.buildship.core.projectimport.ProjectPreviewJob;
 import org.eclipse.buildship.core.util.gradle.PublishedGradleVersionsWrapper;
 import org.eclipse.buildship.core.util.progress.AsyncHandler;
-import org.eclipse.buildship.core.workspace.ExistingDescriptorHandler;
+import org.eclipse.buildship.core.workspace.NewProjectHandler;
 import org.eclipse.buildship.ui.HelpContext;
 import org.eclipse.buildship.ui.UiPlugin;
 import org.eclipse.buildship.ui.util.workbench.WorkingSetUtils;
@@ -143,7 +146,7 @@ public final class ProjectImportWizard extends AbstractProjectWizard implements 
 
     @Override
     public boolean performFinish() {
-        return this.controller.performImportProject(AsyncHandler.NO_OP, new AskUserAboutExistingDescriptorHandler());
+        return this.controller.performImportProject(AsyncHandler.NO_OP, new UserDelegatingNewProjectHandler());
     }
 
     @Override
@@ -163,17 +166,26 @@ public final class ProjectImportWizard extends AbstractProjectWizard implements 
     /**
      * Asks the user whether he wants to keep .project files or overwrite them. Asks only once per multi-project build and remembers the decision.
      */
-    private class AskUserAboutExistingDescriptorHandler implements ExistingDescriptorHandler {
-        private Boolean deleteDescriptors;
+    private class UserDelegatingNewProjectHandler implements NewProjectHandler {
+        private Boolean overwriteDescriptors;
 
         @Override
-        public boolean shouldDeleteDescriptor() {
-            if (this.deleteDescriptors == null) {
+        public boolean shouldOverwriteDescriptor(IProjectDescription descriptor, OmniEclipseProject projectModel) {
+            if (this.overwriteDescriptors == null) {
                 askUserWhetherToDeleteDescriptor();
             }
-            return this.deleteDescriptors;
+            return this.overwriteDescriptors;
         }
-
+        
+        @Override
+        public boolean shouldImport(OmniEclipseProject projectModel) {
+            return true;
+        }
+        
+        @Override
+        public void afterImport(IProject project, OmniEclipseProject projectModel) {
+        }
+        
         private void askUserWhetherToDeleteDescriptor() {
             PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
                 @Override
@@ -188,7 +200,7 @@ public final class ProjectImportWizard extends AbstractProjectWizard implements 
                             0
                        );
                        int choice = dialog.open();
-                       AskUserAboutExistingDescriptorHandler.this.deleteDescriptors = choice == 0;
+                       UserDelegatingNewProjectHandler.this.overwriteDescriptors = choice == 0;
                 }
             });
         }

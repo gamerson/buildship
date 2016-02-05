@@ -105,7 +105,7 @@ abstract class ProjectImportSpecification extends Specification {
         configuration.projectDir = location
         configuration.applyWorkingSets = true
         configuration.workingSets = []
-        new ImportGradleProjectJob(configuration.toFixedAttributes(), NewProjectHandler.IMPORT_AND_DO_NOTHING, AsyncHandler.NO_OP)
+        new ImportGradleProjectJob(configuration.toFixedAttributes(), NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP)
     }
 
     private static def newProjectPreviewJob(File location, GradleDistribution distribution, FutureCallback<Pair<OmniBuildEnvironment, OmniGradleBuildStructure>> resultHandler) {

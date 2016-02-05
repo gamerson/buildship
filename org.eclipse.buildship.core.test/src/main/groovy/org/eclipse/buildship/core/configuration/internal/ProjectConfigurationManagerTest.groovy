@@ -108,7 +108,7 @@ class ProjectConfigurationManagerTest extends Specification {
         importConfigurationOne.applyWorkingSets = true
         importConfigurationOne.workingSets = []
 
-        new ImportGradleProjectJob(importConfigurationOne.toFixedAttributes(), NewProjectHandler.IMPORT_AND_DO_NOTHING, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
+        new ImportGradleProjectJob(importConfigurationOne.toFixedAttributes(), NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
 
         when:
         Set<ProjectConfiguration> rootProjectConfigurations = configurationManager.getRootProjectConfigurations()
@@ -177,8 +177,8 @@ class ProjectConfigurationManagerTest extends Specification {
         importConfigurationTwo.applyWorkingSets = true
         importConfigurationTwo.workingSets = []
 
-        new ImportGradleProjectJob(importConfigurationOne.toFixedAttributes(), NewProjectHandler.IMPORT_AND_DO_NOTHING, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
-        new ImportGradleProjectJob(importConfigurationTwo.toFixedAttributes(), NewProjectHandler.IMPORT_AND_DO_NOTHING, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
+        new ImportGradleProjectJob(importConfigurationOne.toFixedAttributes(), NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
+        new ImportGradleProjectJob(importConfigurationTwo.toFixedAttributes(), NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
 
         when:
         Set<ProjectConfiguration> rootProjectConfigurations = configurationManager.getRootProjectConfigurations()

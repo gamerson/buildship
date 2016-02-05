@@ -317,7 +317,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
     def ImportGradleProjectJob newImportGradleProjectJob(File location) {
         def distribution = GradleDistributionWrapper.from(GradleDistribution.fromBuild()).toGradleDistribution()
         def rootRequestAttributes = new FixedRequestAttributes(location, null, distribution, null, ImmutableList.of(), ImmutableList.of())
-        new ImportGradleProjectJob(rootRequestAttributes, NewProjectHandler.IMPORT_AND_DO_NOTHING, AsyncHandler.NO_OP)
+        new ImportGradleProjectJob(rootRequestAttributes, NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP)
     }
 
 }

@@ -69,7 +69,6 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
                 CorePlugin.workspaceGradleOperations().synchronizeGradleBuildWithWorkspace(
                     gradleBuild,
                     getNewProjectHandler(gradleBuild),
-                    getExistingDescriptorHandler(gradleBuild),
                     new SubProgressMonitor(monitor, 50)
                 );
             }
@@ -90,17 +89,10 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
     protected abstract Set<FixedRequestAttributes> getBuildsToSynchronize();
 
     /**
-     * Determines what should happen if a project is newly imported to the workspace, but already had a project descriptor.
-     */
-    protected ExistingDescriptorHandler getExistingDescriptorHandler(GradleBuildInWorkspace gradleBuild) {
-        return ExistingDescriptorHandler.ALWAYS_KEEP;
-    }
-
-    /**
      * Determines what to do with not yet imported projects in the given build.
      */
     protected NewProjectHandler getNewProjectHandler(GradleBuildInWorkspace gradleBuild) {
-        return NewProjectHandler.IMPORT_AND_DO_NOTHING;
+        return NewProjectHandler.IMPORT_AND_MERGE;
     }
 
     private OmniEclipseWorkspace forceReloadEclipseWorkspace(Set<FixedRequestAttributes> fixedRequestAttributes, IProgressMonitor monitor) {

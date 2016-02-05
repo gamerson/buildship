@@ -33,7 +33,7 @@ public class RefreshGradleProjectsJob extends SynchronizeGradleProjectsJob {
     private final NewProjectHandler newProjectHandler;
 
     public RefreshGradleProjectsJob() {
-        this(FetchStrategy.FORCE_RELOAD, NewProjectHandler.IMPORT_AND_DO_NOTHING);
+        this(FetchStrategy.FORCE_RELOAD, NewProjectHandler.IMPORT_AND_MERGE);
     }
 
     public RefreshGradleProjectsJob(FetchStrategy fetchStrategy, NewProjectHandler newProjectHandler) {
