@@ -43,8 +43,11 @@ import org.eclipse.buildship.core.workspace.internal.DefaultGradleBuildInWorkspa
  */
 public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJob {
 
-    public SynchronizeGradleProjectsJob(String description, boolean notifyUserOfBuildFailures) {
+    private final FetchStrategy fetchStrategy;
+
+    public SynchronizeGradleProjectsJob(String description, boolean notifyUserOfBuildFailures, FetchStrategy fetchStrategy) {
         super(description, notifyUserOfBuildFailures);
+        this.fetchStrategy = fetchStrategy;
     }
 
     @Override
@@ -107,7 +110,7 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
             TransientRequestAttributes transientAttributes = new TransientRequestAttributes(false, streams.getOutput(), streams.getError(), streams.getInput(), listeners,
                     ImmutableList.<org.gradle.tooling.events.ProgressListener> of(), getToken());
             CompositeModelRepository repository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository(fixedRequestAttributes);
-            return repository.fetchEclipseWorkspace(transientAttributes, FetchStrategy.FORCE_RELOAD);
+            return repository.fetchEclipseWorkspace(transientAttributes, this.fetchStrategy);
         } finally {
             monitor.done();
         }

@@ -19,6 +19,7 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
+import com.gradleware.tooling.toolingmodel.repository.FetchStrategy;
 import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
 
 import org.eclipse.core.resources.IProject;
@@ -42,7 +43,7 @@ public final class ImportGradleProjectJob extends SynchronizeGradleProjectsJob {
     }
 
     public ImportGradleProjectJob(FixedRequestAttributes rootRequestAttributes, List<String> workingSets, ExistingDescriptorHandler existingDescriptorHandler, AsyncHandler initializer) {
-        super(String.format("Synchronize Gradle root project at %s with workspace", Preconditions.checkNotNull(rootRequestAttributes).getProjectDir().getAbsolutePath()), false);
+        super(String.format("Synchronize Gradle root project at %s with workspace", Preconditions.checkNotNull(rootRequestAttributes).getProjectDir().getAbsolutePath()), false, FetchStrategy.FORCE_RELOAD);
 
         this.rootRequestAttributes = Preconditions.checkNotNull(rootRequestAttributes);
         this.workingSets = ImmutableList.copyOf(workingSets);

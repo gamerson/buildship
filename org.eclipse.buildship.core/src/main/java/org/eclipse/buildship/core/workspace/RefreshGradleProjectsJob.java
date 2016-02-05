@@ -19,6 +19,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
+import com.gradleware.tooling.toolingmodel.repository.FetchStrategy;
 import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
 
 import org.eclipse.core.resources.IProject;
@@ -30,7 +31,11 @@ import org.eclipse.core.resources.ResourcesPlugin;
 public class RefreshGradleProjectsJob extends SynchronizeGradleProjectsJob {
 
     public RefreshGradleProjectsJob() {
-        super("Synchronize workspace projects with Gradle counterparts", true);
+        this(FetchStrategy.FORCE_RELOAD);
+    }
+    
+    public RefreshGradleProjectsJob(FetchStrategy fetchStrategy) {
+        super("Synchronize workspace projects with Gradle counterparts", true, fetchStrategy);
     }
 
     @Override

@@ -47,7 +47,7 @@ public final class UiContributionManager {
     private final TreeViewerDoubleClickListener treeViewerDoubleClickListener;
     private final ContextActivatingViewPartListener contextActivatingViewPartListener;
     private final WorkbenchSelectionListener workbenchSelectionListener;
-    private final WorkspaceProjectsChangeListener workspaceProjectsChangeListener;
+    private final TaskViewUpdatingProjectChangeListener taskViewUpdatingProjectChangeListener;
 
     public UiContributionManager(TaskView taskView) {
         this.taskView = Preconditions.checkNotNull(taskView);
@@ -77,7 +77,7 @@ public final class UiContributionManager {
         this.treeViewerDoubleClickListener = new TreeViewerDoubleClickListener(UiPluginConstants.RUN_TASKS_COMMAND_ID, taskView.getTreeViewer());
         this.contextActivatingViewPartListener = new ContextActivatingViewPartListener(UiPluginConstants.TASKVIEW_CONTEXT_ID, taskView);
         this.workbenchSelectionListener = new WorkbenchSelectionListener(taskView);
-        this.workspaceProjectsChangeListener = new WorkspaceProjectsChangeListener(taskView);
+        this.taskViewUpdatingProjectChangeListener = new TaskViewUpdatingProjectChangeListener(taskView);
     }
 
     /**
@@ -131,7 +131,7 @@ public final class UiContributionManager {
         this.taskView.getTreeViewer().addDoubleClickListener(this.treeViewerDoubleClickListener);
         this.taskView.getSite().getPage().addPartListener(this.contextActivatingViewPartListener);
         this.taskView.getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(this.workbenchSelectionListener);
-        ResourcesPlugin.getWorkspace().addResourceChangeListener(this.workspaceProjectsChangeListener);
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(this.taskViewUpdatingProjectChangeListener);
     }
 
     public void dispose() {
@@ -140,7 +140,7 @@ public final class UiContributionManager {
         this.taskView.getTreeViewer().removeDoubleClickListener(this.treeViewerDoubleClickListener);
         this.taskView.getSite().getPage().removePartListener(this.contextActivatingViewPartListener);
         this.taskView.getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(this.workbenchSelectionListener);
-        ResourcesPlugin.getWorkspace().removeResourceChangeListener(this.workspaceProjectsChangeListener);
+        ResourcesPlugin.getWorkspace().removeResourceChangeListener(this.taskViewUpdatingProjectChangeListener);
     }
 
 }
