@@ -21,6 +21,7 @@ import org.eclipse.buildship.core.test.fixtures.GradleModel
 import org.eclipse.buildship.core.test.fixtures.LegacyEclipseSpockTestHelper
 import org.eclipse.buildship.core.workspace.ExistingDescriptorHandler
 import org.eclipse.buildship.core.workspace.GradleClasspathContainer
+import org.eclipse.buildship.core.workspace.NewProjectHandler;
 
 class DefaultWorkspaceGradleOperationsTest extends BuildshipTestSpecification {
 
@@ -697,7 +698,7 @@ class DefaultWorkspaceGradleOperationsTest extends BuildshipTestSpecification {
         Job job = new Job('') {
             protected IStatus run(IProgressMonitor monitor) {
                 Job.jobManager.beginRule(LegacyEclipseSpockTestHelper.workspace.root, monitor)
-                new DefaultWorkspaceGradleOperations().synchronizeGradleBuildWithWorkspace(gradleModel.build, [], existingDescriptorHandler, new NullProgressMonitor())
+                new DefaultWorkspaceGradleOperations().synchronizeGradleBuildWithWorkspace(gradleModel.build, NewProjectHandler.IMPORT_AND_DO_NOTHING, existingDescriptorHandler, new NullProgressMonitor())
                 Job.jobManager.endRule(LegacyEclipseSpockTestHelper.workspace.root)
                 Status.OK_STATUS
             }

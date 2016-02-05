@@ -36,7 +36,7 @@ public class GradleWorkspaceRefreshingProjectRemovalListener extends WorkspacePr
 
     @Override
     protected void notifyAboutProjectRemoval(IProject resource) {
-        new RefreshGradleProjectsJob(FetchStrategy.LOAD_IF_NOT_CACHED).schedule();
+        new RefreshGradleProjectsJob(FetchStrategy.LOAD_IF_NOT_CACHED, NewProjectHandler.DONT_IMPORT).schedule();
     }
 
 }

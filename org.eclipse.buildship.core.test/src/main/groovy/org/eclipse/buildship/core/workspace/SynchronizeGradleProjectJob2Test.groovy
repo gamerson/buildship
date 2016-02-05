@@ -33,7 +33,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
         setup:
         def applyJavaPlugin = false
         File projectLocation = newProject(projectDescriptorExists, applyJavaPlugin)
-        ImportGradleProjectJob job = newRefreshGradleProjectJob(projectLocation)
+        ImportGradleProjectJob job = newImportGradleProjectJob(projectLocation)
 
         when:
         job.schedule()
@@ -49,7 +49,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
     def "Project descriptors should be created iff they don't already exist"(boolean applyJavaPlugin, boolean projectDescriptorExists, String descriptorComment) {
         setup:
         File rootProject = newProject(projectDescriptorExists, applyJavaPlugin)
-        ImportGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newImportGradleProjectJob(rootProject)
 
         when:
         job.schedule()
@@ -71,7 +71,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
     def "Imported projects always have Gradle builder and nature"(boolean projectDescriptorExists) {
         setup:
         File rootProject = newProject(projectDescriptorExists, false)
-        ImportGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newImportGradleProjectJob(rootProject)
 
         when:
         job.schedule()
@@ -89,7 +89,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
     def "Imported parent projects have filters to hide the content of the children and the build folders"() {
         setup:
         File rootProject = newMultiProject()
-        ImportGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newImportGradleProjectJob(rootProject)
 
         when:
         job.schedule()
@@ -109,13 +109,13 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
         File rootProject = newMultiProject()
 
         when:
-        ImportGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newImportGradleProjectJob(rootProject)
         job.schedule()
         job.join()
 
         workspaceOperations.deleteAllProjects(null)
 
-        job = newRefreshGradleProjectJob(rootProject)
+        job = newImportGradleProjectJob(rootProject)
         job.schedule()
         job.join()
 
@@ -138,7 +138,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
         project.delete(false, true, new NullProgressMonitor())
 
         when:
-        ImportGradleProjectJob job = newRefreshGradleProjectJob(new File(workspaceRootLocation, "projectname"))
+        ImportGradleProjectJob job = newImportGradleProjectJob(new File(workspaceRootLocation, "projectname"))
         job.schedule()
         job.join()
 
@@ -149,7 +149,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
     def "Can import project located in workspace folder and with custom root name"() {
         setup:
         File rootProject = newProjectWithCustomNameInWorkspaceFolder()
-        ImportGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newImportGradleProjectJob(rootProject)
 
         when:
         job.schedule()
@@ -172,8 +172,8 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
         new File(projectA, 'settings.gradle') << "rootProject.name = 'foo'"
         def projectB = tempFolder.newFolder('projectB')
         new File(projectB, 'settings.gradle') << "rootProject.name = 'foo'"
-        def importA = newRefreshGradleProjectJob(projectA)
-        def importB = newRefreshGradleProjectJob(projectB)
+        def importA = newImportGradleProjectJob(projectA)
+        def importB = newImportGradleProjectJob(projectB)
 
         when:
         importA.schedule()
@@ -192,7 +192,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
         ["projectA", "projectB"].each { name -> 
             def folder = tempFolder.newFolder(name)
             new File(folder, 'settings.gradle') << "rootProject.name = 'foo'"
-            def importJob = newRefreshGradleProjectJob(folder)
+            def importJob = newImportGradleProjectJob(folder)
             
             importJob.schedule()
             importJob.join()
@@ -212,8 +212,8 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
         setup:
         def projectA = tempFolder.newFolder('projectA')
         def projectB = tempFolder.newFolder('projectB')
-        def importA = newRefreshGradleProjectJob(projectA)
-        def importB = newRefreshGradleProjectJob(projectB)
+        def importA = newImportGradleProjectJob(projectA)
+        def importB = newImportGradleProjectJob(projectB)
         def refreshWorkspace = new RefreshGradleProjectsJob()
 
         when:
@@ -250,7 +250,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
             """
             new File(root, 'sub1/src/main/java').mkdirs()
             new File(root, 'sub2/src/main/java').mkdirs()
-            def importRoot = newRefreshGradleProjectJob(root)
+            def importRoot = newImportGradleProjectJob(root)
             importRoot.schedule()
             importRoot.join()
         }
@@ -314,10 +314,10 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
         root
     }
 
-    def ImportGradleProjectJob newRefreshGradleProjectJob(File location) {
+    def ImportGradleProjectJob newImportGradleProjectJob(File location) {
         def distribution = GradleDistributionWrapper.from(GradleDistribution.fromBuild()).toGradleDistribution()
         def rootRequestAttributes = new FixedRequestAttributes(location, null, distribution, null, ImmutableList.of(), ImmutableList.of())
-        new ImportGradleProjectJob(rootRequestAttributes, [], AsyncHandler.NO_OP)
+        new ImportGradleProjectJob(rootRequestAttributes, NewProjectHandler.IMPORT_AND_DO_NOTHING, AsyncHandler.NO_OP)
     }
 
 }

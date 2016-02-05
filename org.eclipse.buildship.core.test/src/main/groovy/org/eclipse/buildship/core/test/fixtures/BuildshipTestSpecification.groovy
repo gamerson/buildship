@@ -12,8 +12,9 @@
 package org.eclipse.buildship.core.test.fixtures
 
 import org.eclipse.buildship.core.CorePlugin
-import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob;
+import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.jobs.Job
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder

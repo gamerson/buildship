@@ -17,7 +17,6 @@ import java.util.Set;
 import org.gradle.tooling.ProgressListener;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Lists;
 
 import com.gradleware.tooling.toolingmodel.OmniEclipseWorkspace;
 import com.gradleware.tooling.toolingmodel.repository.CompositeModelRepository;
@@ -69,7 +68,7 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
                 GradleBuildInWorkspace gradleBuild = DefaultGradleBuildInWorkspace.from(gradleWorkspace, attributes);
                 CorePlugin.workspaceGradleOperations().synchronizeGradleBuildWithWorkspace(
                     gradleBuild,
-                    getWorkingSets(gradleBuild),
+                    getNewProjectHandler(gradleBuild),
                     getExistingDescriptorHandler(gradleBuild),
                     new SubProgressMonitor(monitor, 50)
                 );
@@ -98,10 +97,10 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
     }
 
     /**
-     * Determines which working sets to assign to the projects corresponding to the given Gradle build.
+     * Determines what to do with not yet imported projects in the given build.
      */
-    protected List<String> getWorkingSets(GradleBuildInWorkspace gradleBuild) {
-        return Lists.<String> newArrayList();
+    protected NewProjectHandler getNewProjectHandler(GradleBuildInWorkspace gradleBuild) {
+        return NewProjectHandler.IMPORT_AND_DO_NOTHING;
     }
 
     private OmniEclipseWorkspace forceReloadEclipseWorkspace(Set<FixedRequestAttributes> fixedRequestAttributes, IProgressMonitor monitor) {

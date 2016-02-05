@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Set;
 
 import com.google.common.base.Preconditions;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 
 import com.gradleware.tooling.toolingmodel.repository.FetchStrategy;
@@ -34,19 +33,19 @@ import org.eclipse.buildship.core.util.progress.AsyncHandler;
 public final class ImportGradleProjectJob extends SynchronizeGradleProjectsJob {
 
     private final FixedRequestAttributes rootRequestAttributes;
-    private final ImmutableList<String> workingSets;
+    private final NewProjectHandler newProjectHandler;
     private final ExistingDescriptorHandler existingDescriptorHandler;
     private final AsyncHandler initializer;
 
-    public ImportGradleProjectJob(FixedRequestAttributes rootRequestAttributes, List<String> workingSets, AsyncHandler initializer) {
-        this(rootRequestAttributes, workingSets, ExistingDescriptorHandler.ALWAYS_KEEP, initializer);
+    public ImportGradleProjectJob(FixedRequestAttributes rootRequestAttributes, NewProjectHandler newProjectHandler, AsyncHandler initializer) {
+        this(rootRequestAttributes, newProjectHandler, ExistingDescriptorHandler.ALWAYS_KEEP, initializer);
     }
 
-    public ImportGradleProjectJob(FixedRequestAttributes rootRequestAttributes, List<String> workingSets, ExistingDescriptorHandler existingDescriptorHandler, AsyncHandler initializer) {
+    public ImportGradleProjectJob(FixedRequestAttributes rootRequestAttributes, NewProjectHandler newProjectHandler, ExistingDescriptorHandler existingDescriptorHandler, AsyncHandler initializer) {
         super(String.format("Synchronize Gradle root project at %s with workspace", Preconditions.checkNotNull(rootRequestAttributes).getProjectDir().getAbsolutePath()), false, FetchStrategy.FORCE_RELOAD);
 
         this.rootRequestAttributes = Preconditions.checkNotNull(rootRequestAttributes);
-        this.workingSets = ImmutableList.copyOf(workingSets);
+        this.newProjectHandler = newProjectHandler;
         this.existingDescriptorHandler = Preconditions.checkNotNull(existingDescriptorHandler);
         this.initializer = Preconditions.checkNotNull(initializer);
 
@@ -73,11 +72,11 @@ public final class ImportGradleProjectJob extends SynchronizeGradleProjectsJob {
     }
 
     @Override
-    protected List<String> getWorkingSets(GradleBuildInWorkspace gradleBuild) {
+    protected NewProjectHandler getNewProjectHandler(GradleBuildInWorkspace gradleBuild) {
         if (gradleBuild.getRequestAttributes().equals(this.rootRequestAttributes)) {
-            return this.workingSets;
+            return this.newProjectHandler;
         } else {
-            return super.getWorkingSets(gradleBuild);
+            return super.getNewProjectHandler(gradleBuild);
         }
     }
 

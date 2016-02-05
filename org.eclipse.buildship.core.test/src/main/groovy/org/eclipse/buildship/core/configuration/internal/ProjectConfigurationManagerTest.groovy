@@ -25,6 +25,7 @@ import org.eclipse.buildship.core.projectimport.ProjectImportConfiguration
 import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper
 import org.eclipse.buildship.core.util.progress.AsyncHandler
 import org.eclipse.buildship.core.workspace.ImportGradleProjectJob
+import org.eclipse.buildship.core.workspace.NewProjectHandler;
 import org.eclipse.buildship.core.workspace.WorkspaceOperations
 import org.eclipse.core.resources.IProject
 import org.eclipse.core.runtime.NullProgressMonitor
@@ -107,7 +108,7 @@ class ProjectConfigurationManagerTest extends Specification {
         importConfigurationOne.applyWorkingSets = true
         importConfigurationOne.workingSets = []
 
-        new ImportGradleProjectJob(importConfigurationOne.toFixedAttributes(), importConfigurationOne.workingSets.getValue(), AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
+        new ImportGradleProjectJob(importConfigurationOne.toFixedAttributes(), NewProjectHandler.IMPORT_AND_DO_NOTHING, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
 
         when:
         Set<ProjectConfiguration> rootProjectConfigurations = configurationManager.getRootProjectConfigurations()
@@ -176,8 +177,8 @@ class ProjectConfigurationManagerTest extends Specification {
         importConfigurationTwo.applyWorkingSets = true
         importConfigurationTwo.workingSets = []
 
-        new ImportGradleProjectJob(importConfigurationOne.toFixedAttributes(), importConfigurationOne.workingSets.getValue(), AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
-        new ImportGradleProjectJob(importConfigurationTwo.toFixedAttributes(), importConfigurationOne.workingSets.getValue(), AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
+        new ImportGradleProjectJob(importConfigurationOne.toFixedAttributes(), NewProjectHandler.IMPORT_AND_DO_NOTHING, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
+        new ImportGradleProjectJob(importConfigurationTwo.toFixedAttributes(), NewProjectHandler.IMPORT_AND_DO_NOTHING, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
 
         when:
         Set<ProjectConfiguration> rootProjectConfigurations = configurationManager.getRootProjectConfigurations()

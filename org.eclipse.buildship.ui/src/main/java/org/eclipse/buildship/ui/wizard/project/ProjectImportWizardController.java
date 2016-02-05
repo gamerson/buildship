@@ -14,6 +14,8 @@ package org.eclipse.buildship.ui.wizard.project;
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+
+import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
 import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
 import com.gradleware.tooling.toolingutils.binding.Property;
 import com.gradleware.tooling.toolingutils.binding.ValidationListener;
@@ -28,14 +30,20 @@ import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper.Distribu
 import org.eclipse.buildship.core.util.progress.AsyncHandler;
 import org.eclipse.buildship.core.workspace.ExistingDescriptorHandler;
 import org.eclipse.buildship.core.workspace.ImportGradleProjectJob;
+import org.eclipse.buildship.core.workspace.NewProjectHandler;
 import org.eclipse.buildship.ui.util.workbench.WorkbenchUtils;
+import org.eclipse.buildship.ui.util.workbench.WorkingSetUtils;
 import org.eclipse.buildship.ui.view.execution.ExecutionsView;
 import org.eclipse.buildship.ui.view.task.TaskView;
+
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.wizard.IWizard;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkingSet;
+import org.eclipse.ui.IWorkingSetManager;
 import org.eclipse.ui.PlatformUI;
 
 import java.io.File;
@@ -170,7 +178,7 @@ public class ProjectImportWizardController {
     public boolean performImportProject(AsyncHandler initializer, ExistingDescriptorHandler existingDescriptorHandler) {
         FixedRequestAttributes rootRequestAttributes = this.configuration.toFixedAttributes();
         List<String> workingSets = this.configuration.getApplyWorkingSets().getValue() ? ImmutableList.copyOf(this.configuration.getWorkingSets().getValue()) : ImmutableList.<String>of();
-        ImportGradleProjectJob synchronizeJob = new ImportGradleProjectJob(rootRequestAttributes, workingSets, existingDescriptorHandler, initializer);
+        ImportGradleProjectJob synchronizeJob = new ImportGradleProjectJob(rootRequestAttributes, new ImportAndAssignWorkingSetsHandler(workingSets), existingDescriptorHandler, initializer);
         synchronizeJob.addJobChangeListener(new JobChangeAdapter() {
 
             @Override
@@ -182,6 +190,28 @@ public class ProjectImportWizardController {
         });
         synchronizeJob.schedule();
         return true;
+    }
+    
+    private static final class ImportAndAssignWorkingSetsHandler implements NewProjectHandler {
+        
+        private final List<String> workingSetNames;
+        
+        public ImportAndAssignWorkingSetsHandler(List<String> workingSetNames) {
+            this.workingSetNames = workingSetNames;
+        }
+
+        @Override
+        public boolean shouldImport(OmniEclipseProject projectModel) {
+            return true;
+        }
+
+        @Override
+        public void afterImport(IProject project, OmniEclipseProject projectModel) {
+            IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
+            IWorkingSet[] workingSets = WorkingSetUtils.toWorkingSets(workingSetNames);
+            workingSetManager.addToWorkingSets(project, workingSets);
+        }
+        
     }
 
     private void ensureGradleViewsAreVisible() {

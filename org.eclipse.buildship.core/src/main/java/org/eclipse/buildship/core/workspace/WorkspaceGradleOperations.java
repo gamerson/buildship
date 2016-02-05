@@ -41,11 +41,11 @@ public interface WorkspaceGradleOperations {
      * </ol>
      *
      * @param gradleBuild           the Gradle build to synchronize
-     * @param workingSets           the working set to assign the imported projects to
+     * @param newProjectHandler     what to do with projects that are not imported yet
      * @param existingDescriptorHandler whether to keep or delete existing project descriptors
      * @param monitor               the monitor to report the progress on
      */
-    void synchronizeGradleBuildWithWorkspace(GradleBuildInWorkspace gradleBuild, List<String> workingSets, ExistingDescriptorHandler existingDescriptorHandler, IProgressMonitor monitor);
+    void synchronizeGradleBuildWithWorkspace(GradleBuildInWorkspace gradleBuild, NewProjectHandler newProjectHandler, ExistingDescriptorHandler existingDescriptorHandler, IProgressMonitor monitor);
 
     /**
      * Synchronizes the given Gradle project with its Eclipse workspace project counterpart. The algorithm is as follows:
@@ -94,7 +94,8 @@ public interface WorkspaceGradleOperations {
      * <li>the project natures and build commands are set</li>
      * </ul>
      * </li>
-     * <li>If the there is no project in the workspace nor an Eclipse project at the location of the Gradle build, the synchronization is as follows:
+     * <li>If the there is no project in the workspace nor an Eclipse project at the location of the Gradle build, the {@link NewProjectHandler} i
+     * called to find out whether it should be imported. If it is, the synchronization is as follows:
      * <ul>
      * <li>an Eclipse project is created and added to the workspace</li>
      * <li>the Gradle nature is set</li>
@@ -113,11 +114,11 @@ public interface WorkspaceGradleOperations {
      *
      * @param project               the backing Gradle project
      * @param gradleBuild           the Gradle build to which the Gradle project belongs
-     * @param workingSets           the working set to assign the imported projects to
+     * @param newProjectHandler     what to do with projects that are not yet imported
      * @param existingDescriptorHandler whether to delete or keep existing .project files
      * @param monitor               the monitor to report the progress on
      */
-    void synchronizeGradleProjectWithWorkspaceProject(OmniEclipseProject project, GradleBuildInWorkspace gradleBuild, List<String> workingSets, ExistingDescriptorHandler existingDescriptorHandler, IProgressMonitor monitor);
+    void synchronizeGradleProjectWithWorkspaceProject(OmniEclipseProject project, GradleBuildInWorkspace gradleBuild, NewProjectHandler newProjectHandler, ExistingDescriptorHandler existingDescriptorHandler, IProgressMonitor monitor);
 
     /**
      * Synchronizes the given Eclipse workspace project with its Gradle counterpart, if that counterpart exists. The algorithm is as follows:
