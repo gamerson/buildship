@@ -12,6 +12,8 @@
 package org.eclipse.buildship.core.test.fixtures
 
 import org.eclipse.buildship.core.CorePlugin
+import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob;
+
 import org.eclipse.core.runtime.jobs.Job
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
@@ -37,13 +39,18 @@ abstract class BuildshipTestSpecification extends Specification {
     def cleanup() {
         // delete all project from the workspace and the corresponding content on the file system
         CorePlugin.workspaceOperations().deleteAllProjects(null)
+        waitForJobsToFinish()
         workspaceFolder.listFiles().findAll{ it.isDirectory() && !it.name.startsWith('.') }.each { it.deleteDir() }
     }
 
     // -- methods to retrieve test folders
 
     protected File getWorkspaceFolder() {
-        LegacyEclipseSpockTestHelper.workspace.root.location.toFile()
+        workspaceRoot.location.toFile()
+    }
+    
+    protected getWorkspaceRoot() {
+        LegacyEclipseSpockTestHelper.workspace.root
     }
 
     protected File getExternalTestFolder() {
@@ -69,9 +76,7 @@ abstract class BuildshipTestSpecification extends Specification {
     }
 
     protected static def waitForJobsToFinish() {
-        while (!Job.jobManager.isIdle()) {
-            delay(100)
-        }
+        Job.jobManager.join(SynchronizeGradleProjectsJob.JOB_FAMILY, null)
     }
 
     protected static def delay(long waitTimeMillis) {

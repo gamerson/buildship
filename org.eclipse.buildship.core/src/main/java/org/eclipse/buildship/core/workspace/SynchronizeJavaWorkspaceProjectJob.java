@@ -115,4 +115,8 @@ public final class SynchronizeJavaWorkspaceProjectJob extends ToolingApiWorkspac
         return repository.fetchEclipseWorkspace(transientAttributes, this.fetchStrategy);
     }
 
+    @Override
+    public boolean belongsTo(Object family) {
+        return SynchronizeGradleProjectsJob.JOB_FAMILY.equals(family);
+    }
 }

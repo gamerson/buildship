@@ -703,7 +703,7 @@ class DefaultWorkspaceGradleOperationsTest extends BuildshipTestSpecification {
             }
         }
         job.schedule()
-        waitForJobsToFinish()
+        job.join()
     }
 
     private IProject newClosedProject(String name) {

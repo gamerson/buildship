@@ -27,7 +27,8 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell
 import org.eclipse.swtbot.swt.finder.widgets.TimeoutException;
 import org.eclipse.ui.PlatformUI
 
-import org.eclipse.buildship.core.CorePlugin;
+import org.eclipse.buildship.core.CorePlugin
+import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob;
 import org.eclipse.buildship.ui.UiPlugin
 
 abstract class SwtBotSpecification extends Specification {
@@ -40,6 +41,11 @@ abstract class SwtBotSpecification extends Specification {
 
     def setup() {
         closeAllShellsExceptTheApplicationShellAndForceShellActivation()
+    }
+    
+    def cleanup() {
+        CorePlugin.workspaceOperations().deleteAllProjects(null)
+        waitForJobsToFinish()
     }
 
     private static void closeWelcomePageIfAny() {
@@ -90,9 +96,7 @@ abstract class SwtBotSpecification extends Specification {
     }
 
     protected static void waitForJobsToFinish() {
-        while (!Job.jobManager.isIdle()) {
-            delay(100)
-        }
+        Job.jobManager.join(SynchronizeGradleProjectsJob.JOB_FAMILY, null)
     }
 
     protected static void delay(long waitTimeMillis) {

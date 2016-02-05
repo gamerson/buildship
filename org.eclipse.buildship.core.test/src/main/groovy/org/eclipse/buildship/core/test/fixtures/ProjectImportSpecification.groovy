@@ -11,29 +11,35 @@
 
 package org.eclipse.buildship.core.test.fixtures
 
+import org.junit.Rule
+import org.junit.rules.TemporaryFolder
+import spock.lang.Specification
+
 import com.google.common.util.concurrent.FutureCallback
+
 import com.gradleware.tooling.toolingclient.GradleDistribution
 import com.gradleware.tooling.toolingmodel.OmniBuildEnvironment
 import com.gradleware.tooling.toolingmodel.OmniGradleBuildStructure
 import com.gradleware.tooling.toolingmodel.util.Pair
+
+import org.eclipse.core.runtime.jobs.Job
+
 import org.eclipse.buildship.core.CorePlugin
 import org.eclipse.buildship.core.projectimport.ProjectImportConfiguration
 import org.eclipse.buildship.core.projectimport.ProjectPreviewJob
 import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper
 import org.eclipse.buildship.core.util.progress.AsyncHandler
 import org.eclipse.buildship.core.workspace.ImportGradleProjectJob
-import org.eclipse.core.runtime.jobs.Job
-import org.junit.Rule
-import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
+import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob
 
 abstract class ProjectImportSpecification extends Specification {
 
     @Rule
     TemporaryFolder tempFolder
-
+    
     def cleanup() {
         CorePlugin.workspaceOperations().deleteAllProjects(null)
+        waitForJobsToFinish()
         workspaceLocation.listFiles().findAll{ it.isDirectory() && !it.name.startsWith('.') }.each { it.deleteDir() }
     }
 
@@ -129,9 +135,7 @@ abstract class ProjectImportSpecification extends Specification {
     }
 
     protected static def waitForJobsToFinish() {
-        while (!Job.jobManager.isIdle()) {
-            delay(100)
-        }
+        Job.jobManager.join(SynchronizeGradleProjectsJob.JOB_FAMILY, null)
     }
 
     protected static def delay(long waitTimeMillis) {
