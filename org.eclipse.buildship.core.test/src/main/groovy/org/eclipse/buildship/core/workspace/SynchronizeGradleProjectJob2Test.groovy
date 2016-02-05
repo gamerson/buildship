@@ -1,34 +1,34 @@
 package org.eclipse.buildship.core.workspace
 
-import com.google.common.collect.ImmutableList
-import com.gradleware.tooling.toolingclient.GradleDistribution
-import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes
-import org.eclipse.buildship.core.CorePlugin
-import org.eclipse.buildship.core.configuration.GradleProjectBuilder
-import org.eclipse.buildship.core.configuration.GradleProjectNature
-import org.eclipse.buildship.core.test.fixtures.LegacyEclipseSpockTestHelper
-import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper
-import org.eclipse.buildship.core.util.progress.AsyncHandler
-import org.eclipse.buildship.core.util.variable.ExpressionUtils
-import org.eclipse.core.resources.IWorkspace
-import org.eclipse.core.runtime.IPath
-import org.eclipse.core.runtime.NullProgressMonitor
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.JavaCore;
-
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
-class SynchronizeGradleProjectJob2Test extends Specification {
+import com.google.common.collect.ImmutableList
+
+import com.gradleware.tooling.toolingclient.GradleDistribution
+import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes
+
+import org.eclipse.core.resources.IWorkspace
+import org.eclipse.core.runtime.IPath
+import org.eclipse.core.runtime.NullProgressMonitor
+import org.eclipse.jdt.core.IClasspathEntry
+import org.eclipse.jdt.core.JavaCore
+
+import org.eclipse.buildship.core.CorePlugin
+import org.eclipse.buildship.core.configuration.GradleProjectBuilder
+import org.eclipse.buildship.core.configuration.GradleProjectNature
+import org.eclipse.buildship.core.test.fixtures.BuildshipTestSpecification;
+import org.eclipse.buildship.core.test.fixtures.LegacyEclipseSpockTestHelper
+import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper
+import org.eclipse.buildship.core.util.progress.AsyncHandler
+import org.eclipse.buildship.core.util.variable.ExpressionUtils
+
+class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
 
     @Rule
     TemporaryFolder tempFolder
-
-    def cleanup() {
-        CorePlugin.workspaceOperations().deleteAllProjects(null)
-    }
-
+    
     def "Project import job creates a new project in the workspace"(boolean projectDescriptorExists) {
         setup:
         def applyJavaPlugin = false
@@ -130,7 +130,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
     def "Can import deleted project located in default location"() {
         setup:
         def workspaceOperations = CorePlugin.workspaceOperations()
-        def workspaceRootLocation = LegacyEclipseSpockTestHelper.workspace.root.location.toFile()
+        def workspaceRootLocation = workspaceRoot.location.toFile()
         def location = new File(workspaceRootLocation, 'projectname')
         location.mkdirs()
 
@@ -156,8 +156,8 @@ class SynchronizeGradleProjectJob2Test extends Specification {
         job.join()
 
         then:
-        LegacyEclipseSpockTestHelper.workspace.root.projects.length == 1
-        def project = LegacyEclipseSpockTestHelper.workspace.root.projects[0]
+        workspaceRoot.projects.length == 1
+        def project = workspaceRoot.projects[0]
         def locationExpression = ExpressionUtils.encodeWorkspaceLocation(project)
         def decodedLocation = ExpressionUtils.decode(locationExpression)
         rootProject.equals(new File(decodedLocation))
@@ -182,11 +182,32 @@ class SynchronizeGradleProjectJob2Test extends Specification {
         importB.join()
 
         then:
-        def projects = LegacyEclipseSpockTestHelper.workspace.root.projects
+        def projects = workspaceRoot.projects
         projects.length == 2
         projects*.name as Set == ['foo1', 'foo2'] as Set
     }
 
+    def "When a name conflict no longer exists, the project takes back its simple name"() {
+        setup:
+        ["projectA", "projectB"].each { name -> 
+            def folder = tempFolder.newFolder(name)
+            new File(folder, 'settings.gradle') << "rootProject.name = 'foo'"
+            def importJob = newRefreshGradleProjectJob(folder)
+            
+            importJob.schedule()
+            importJob.join()
+        }
+        
+        when:
+        def root = workspaceRoot
+        root.getProject("foo2").delete(true, null)
+        waitForJobsToFinish()
+
+        then:
+        root.projects.length == 1
+        root.getProject("foo").accessible
+    }
+    
     def "Projects can be renamed in cycles"() {
         setup:
         def projectA = tempFolder.newFolder('projectA')
@@ -206,7 +227,6 @@ class SynchronizeGradleProjectJob2Test extends Specification {
         refreshWorkspace.join()
 
         then:
-        def workspaceRoot = LegacyEclipseSpockTestHelper.workspace.root
         def projects = workspaceRoot.projects
         projects.length == 2
         workspaceRoot.getProject('projectA').getLocation().lastSegment() == "projectB"
@@ -241,7 +261,6 @@ class SynchronizeGradleProjectJob2Test extends Specification {
         refreshWorkspace.join()
 
         then:
-        def workspaceRoot = LegacyEclipseSpockTestHelper.workspace.root
         def sub2= workspaceRoot.getProject('projectA-sub2')
         JavaCore.create(sub2).resolvedClasspath.find { entry ->
             entry.entryKind == IClasspathEntry.CPE_PROJECT && entry.path.toString() == '/projectA-sub1'
