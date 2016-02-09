@@ -97,7 +97,7 @@ public final class CorePlugin extends Plugin {
     private ServiceTracker userNotificationServiceTracker;
 
     private GradleWorkspaceRefreshingProjectRemovalListener gradleWorkspaceRefreshingProjectRemovalListener;
-    
+
     @Override
     public void start(BundleContext bundleContext) throws Exception {
         super.start(bundleContext);
@@ -109,9 +109,9 @@ public final class CorePlugin extends Plugin {
 
     @Override
     public void stop(BundleContext context) throws Exception {
+        unregisterListeners();
         toolingClient().stop(CleanUpStrategy.GRACEFULLY);
         unregisterServices();
-        unregisterListeners();
         plugin = null;
         super.stop(context);
     }
@@ -235,16 +235,16 @@ public final class CorePlugin extends Plugin {
         this.publishedGradleVersionsServiceTracker.close();
         this.loggerServiceTracker.close();
     }
-    
+
     private void registerListeners() {
-        gradleWorkspaceRefreshingProjectRemovalListener = new GradleWorkspaceRefreshingProjectRemovalListener();
-        ResourcesPlugin.getWorkspace().addResourceChangeListener(gradleWorkspaceRefreshingProjectRemovalListener);
+        this.gradleWorkspaceRefreshingProjectRemovalListener = new GradleWorkspaceRefreshingProjectRemovalListener();
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(this.gradleWorkspaceRefreshingProjectRemovalListener);
     }
-    
+
     private void unregisterListeners() {
-        ResourcesPlugin.getWorkspace().removeResourceChangeListener(gradleWorkspaceRefreshingProjectRemovalListener);
+        ResourcesPlugin.getWorkspace().removeResourceChangeListener(this.gradleWorkspaceRefreshingProjectRemovalListener);
     }
-    
+
     public static CorePlugin getInstance() {
         return plugin;
     }
