@@ -23,7 +23,7 @@ import org.eclipse.core.resources.IProject;
  * @author Stefan Oehme
  *
  */
-public class GradleWorkspaceRefreshingProjectRemovalListener extends WorkspaceProjectChangeListener {
+public class CompositeRefreshingProjectChangeListener extends WorkspaceProjectChangeListener {
 
     @Override
     protected void notifyAboutProjectAdditions(Set<IProject> addedProjects) {

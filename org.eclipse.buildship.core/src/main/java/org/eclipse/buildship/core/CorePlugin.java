@@ -42,7 +42,7 @@ import org.eclipse.buildship.core.notification.UserNotification;
 import org.eclipse.buildship.core.notification.internal.ConsoleUserNotification;
 import org.eclipse.buildship.core.util.gradle.PublishedGradleVersionsWrapper;
 import org.eclipse.buildship.core.util.logging.EclipseLogger;
-import org.eclipse.buildship.core.workspace.GradleWorkspaceRefreshingProjectRemovalListener;
+import org.eclipse.buildship.core.workspace.CompositeRefreshingProjectChangeListener;
 import org.eclipse.buildship.core.workspace.WorkspaceGradleOperations;
 import org.eclipse.buildship.core.workspace.WorkspaceOperations;
 import org.eclipse.buildship.core.workspace.internal.DefaultWorkspaceGradleOperations;
@@ -96,7 +96,7 @@ public final class CorePlugin extends Plugin {
     private ServiceTracker listenerRegistryServiceTracker;
     private ServiceTracker userNotificationServiceTracker;
 
-    private GradleWorkspaceRefreshingProjectRemovalListener gradleWorkspaceRefreshingProjectRemovalListener;
+    private CompositeRefreshingProjectChangeListener compositeRefreshingProjectChangeListener;
 
     @Override
     public void start(BundleContext bundleContext) throws Exception {
@@ -237,12 +237,12 @@ public final class CorePlugin extends Plugin {
     }
 
     private void registerListeners() {
-        this.gradleWorkspaceRefreshingProjectRemovalListener = new GradleWorkspaceRefreshingProjectRemovalListener();
-        ResourcesPlugin.getWorkspace().addResourceChangeListener(this.gradleWorkspaceRefreshingProjectRemovalListener);
+        this.compositeRefreshingProjectChangeListener = new CompositeRefreshingProjectChangeListener();
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(this.compositeRefreshingProjectChangeListener);
     }
 
     private void unregisterListeners() {
-        ResourcesPlugin.getWorkspace().removeResourceChangeListener(this.gradleWorkspaceRefreshingProjectRemovalListener);
+        ResourcesPlugin.getWorkspace().removeResourceChangeListener(this.compositeRefreshingProjectChangeListener);
     }
 
     public static CorePlugin getInstance() {
