@@ -140,9 +140,11 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
     }
 
     private void synchronizeOpenWorkspaceProject(GradleBuildInWorkspace gradleBuild, OmniEclipseProject project, IProject workspaceProject, FixedRequestAttributes rootRequestAttributes, IProgressMonitor monitor) throws CoreException {
-        monitor.beginTask(String.format("Synchronize Gradle project %s that is open in the workspace", project.getName()), 8);
+        monitor.beginTask(String.format("Synchronize Gradle project %s that is open in the workspace", project.getName()), 9);
         try {
-            if (!project.getName().equals(workspaceProject.getName())) {
+            if (project.getName().equals(workspaceProject.getName())) {
+                monitor.worked(1);
+            } else {
                 workspaceProject = renameProject(workspaceProject, gradleBuild, project, new SubProgressMonitor(monitor, 1));
             }
             // add Gradle nature, if needed
@@ -191,18 +193,29 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
 
     private IProject renameProject(IProject workspaceProject, GradleBuildInWorkspace gradleBuild, OmniEclipseProject project, IProgressMonitor monitor) {
         String newName = project.getName();
+        ensureNameIsFree(newName, gradleBuild, monitor);
+        return CorePlugin.workspaceOperations().renameProject(workspaceProject, newName, monitor);
+    }
+
+    private void ensureNameIsFree(String newName, GradleBuildInWorkspace gradleBuild, IProgressMonitor monitor) {
         Optional<IProject> possibleDuplicate = CorePlugin.workspaceOperations().findProjectByName(newName);
         if (possibleDuplicate.isPresent()) {
             IProject duplicate = possibleDuplicate.get();
-            Optional<OmniEclipseProject> duplicateInComposite = gradleBuild.getWorkspace().tryFind(Specs.eclipseProjectMatchesProjectDirectory(duplicate.getLocation().toFile()));
-            if (duplicateInComposite.isPresent() && !duplicateInComposite.get().getName().equals(duplicate.getName())) {
-                //this project will be renamed later during the synchronize operation anyway, so we can safely give it a temporary name
-                CorePlugin.workspaceOperations().renameProject(duplicate, "GrumpyGradlephantNoLikeDuplicate-" + duplicate.getName(), new SubProgressMonitor(monitor, 1));
+            if (isScheduledForRenaming(duplicate, gradleBuild)) {
+                renameTemporarily(duplicate, monitor);
             } else {
                 throw new GradlePluginsRuntimeException("A project with the name " + newName + " already exists");
             }
         }
-        return CorePlugin.workspaceOperations().renameProject(workspaceProject, newName, new SubProgressMonitor(monitor, 1));
+    }
+
+    private boolean isScheduledForRenaming(IProject duplicate, GradleBuildInWorkspace gradleBuild) {
+        Optional<OmniEclipseProject> duplicateInComposite = gradleBuild.getWorkspace().tryFind(Specs.eclipseProjectMatchesProjectDirectory(duplicate.getLocation().toFile()));
+        return duplicateInComposite.isPresent() && !duplicateInComposite.get().getName().equals(duplicate.getName());
+    }
+
+    private void renameTemporarily(IProject duplicate, IProgressMonitor monitor) {
+        CorePlugin.workspaceOperations().renameProject(duplicate, "GrumpyGradlephantNoLikeDuplicate-" + duplicate.getName(), monitor);
     }
 
     private void synchronizeClosedWorkspaceProject() {
@@ -238,13 +251,16 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
     }
 
     private IProject addExistingEclipseProjectToWorkspace(GradleBuildInWorkspace gradleBuild, OmniEclipseProject project, IProjectDescription projectDescription, IProgressMonitor monitor) throws CoreException {
-        monitor.beginTask(String.format("Add existing Eclipse project %s for Gradle project %s to the workspace", projectDescription.getName(), project.getName()), 4);
+        monitor.beginTask(String.format("Add existing Eclipse project %s for Gradle project %s to the workspace", projectDescription.getName(), project.getName()), 5);
         try {
             // include the existing Eclipse project in the workspace
             List<String> gradleNature = ImmutableList.of(GradleProjectNature.ID);
             IProject workspaceProject = CorePlugin.workspaceOperations().includeProject(projectDescription, gradleNature, new SubProgressMonitor(monitor, 1));
 
-            if (!project.getName().equals(workspaceProject.getName())) {
+            if (project.getName().equals(workspaceProject.getName())) {
+                monitor.worked(1);
+            } else {
+
                 workspaceProject = renameProject(workspaceProject, gradleBuild, project, new SubProgressMonitor(monitor, 1));
             }
             // persist the Gradle-specific configuration in the Eclipse project's .settings folder
@@ -294,7 +310,7 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
                 IJavaProject javaProject = JavaCore.create(workspaceProject);
                 JavaSourceSettingsUpdater.update(javaProject, project.getJavaSourceSettings(), new SubProgressMonitor(monitor, 1));
                 SourceFolderUpdater.update(javaProject, project.getSourceDirectories(), new SubProgressMonitor(monitor, 1));
-                
+
             } else {
                 monitor.worked(1);
             }
