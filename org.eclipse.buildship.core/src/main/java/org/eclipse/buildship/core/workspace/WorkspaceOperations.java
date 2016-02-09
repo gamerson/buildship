@@ -11,12 +11,10 @@
 
 package org.eclipse.buildship.core.workspace;
 
-import java.io.File;
-import java.util.List;
-import java.util.Map;
-
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
+
+import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
@@ -24,6 +22,10 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IClasspathEntry;
 import org.eclipse.jdt.core.IJavaProject;
+
+import java.io.File;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Provides operations related to querying and modifying the Eclipse elements that exist in a
@@ -77,6 +79,12 @@ public interface WorkspaceOperations {
      */
     void deleteAllProjects(IProgressMonitor monitor);
 
+    /**
+     * Deletes the .project and .classpath files of the given eclipse project.
+     * @param eclipseProject the project, must not be null
+     */
+    void deleteProjectDescriptor(OmniEclipseProject eclipseProject);
+
    /**
      * Creates a new {@link IProject} in the workspace using the specified name and location. The
      * location must exist and no project with the specified name must currently exist in the
@@ -95,13 +103,13 @@ public interface WorkspaceOperations {
      * Includes an existing {@link IProject} in the workspace. The project must not yet exist in the workspace.
      * The project is also opened and the specified natures are added.
      *
-     * @param description the project to include
+     * @param projectDescription the project to include
      * @param extraNatureIds the nature ids to add to the project
      * @param monitor the monitor to report the progress on
      * @return the included project
      * @throws org.eclipse.buildship.core.GradlePluginsRuntimeException thrown if the project inclusion fails
      */
-    IProject includeProject(IProjectDescription description, List<String> extraNatureIds, IProgressMonitor monitor);
+    IProject includeProject(IProjectDescription projectDescription, List<String> extraNatureIds, IProgressMonitor monitor);
 
     /**
      * Configures an existing {@link IProject} to also be an {@link IJavaProject}.
