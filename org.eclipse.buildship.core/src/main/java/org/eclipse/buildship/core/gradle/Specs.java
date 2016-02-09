@@ -37,11 +37,21 @@ public final class Specs {
      * @return the spec
      */
     public static Spec<OmniEclipseProject> eclipseProjectMatchesProjectDirectory(final File projectDir) {
+        final File canonicalProjectDir;
+        try {
+            canonicalProjectDir = projectDir.getCanonicalFile();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         return new Spec<OmniEclipseProject>() {
 
             @Override
             public boolean isSatisfiedBy(OmniEclipseProject candidate) {
-                return candidate.getProjectDirectory().equals(projectDir);
+                try {
+                    return candidate.getProjectDirectory().getCanonicalFile().equals(canonicalProjectDir);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
         };
     }
