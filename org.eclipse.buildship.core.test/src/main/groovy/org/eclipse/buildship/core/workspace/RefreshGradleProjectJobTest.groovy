@@ -23,7 +23,7 @@ class RefreshGradleProjectJobTest extends ProjectImportSpecification {
 
         when:
         new RefreshGradleProjectsJob().schedule()
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
 
         then:
         JavaCore.create(findProject('moduleA')).resolvedClasspath.find{ it.path.toPortableString().endsWith('junit-4.12.jar') }
@@ -37,7 +37,7 @@ class RefreshGradleProjectJobTest extends ProjectImportSpecification {
 
         when:
         new RefreshGradleProjectsJob().schedule()
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
 
         then:
         IProject project = findProject('moduleB')
@@ -59,7 +59,7 @@ class RefreshGradleProjectJobTest extends ProjectImportSpecification {
 
         when:
         new RefreshGradleProjectsJob().schedule()
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
 
         then:
         IProject project = findProject('moduleC')
@@ -89,11 +89,11 @@ class RefreshGradleProjectJobTest extends ProjectImportSpecification {
         IProject project = workspace.root.getProject(description.getName());
         project.create(description, null);
         project.open(IResource.BACKGROUND_REFRESH, null);
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
 
         when:
         new RefreshGradleProjectsJob().schedule()
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
 
         then:
         GradleProjectNature.INSTANCE.isPresentOn(project)

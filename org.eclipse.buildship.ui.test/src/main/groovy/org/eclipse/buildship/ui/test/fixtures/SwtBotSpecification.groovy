@@ -42,10 +42,10 @@ abstract class SwtBotSpecification extends Specification {
     def setup() {
         closeAllShellsExceptTheApplicationShellAndForceShellActivation()
     }
-    
+
     def cleanup() {
         CorePlugin.workspaceOperations().deleteAllProjects(null)
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
     }
 
     private static void closeWelcomePageIfAny() {
@@ -90,12 +90,12 @@ abstract class SwtBotSpecification extends Specification {
         })
     }
 
-    protected static void cancelAllJobsAndWait() {
+    protected static void cancelSynchronizationJobsAndWait() {
         Job.jobManager.cancel(null)
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
     }
 
-    protected static void waitForJobsToFinish() {
+    protected static void waitForSynchronizationJobsToFinish() {
         Job.jobManager.join(SynchronizeGradleProjectsJob.JOB_FAMILY, null)
     }
 

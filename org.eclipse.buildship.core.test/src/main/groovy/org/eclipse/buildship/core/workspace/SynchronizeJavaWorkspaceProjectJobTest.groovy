@@ -16,7 +16,7 @@ class SynchronizeJavaWorkspaceProjectJobTest extends ProjectImportSpecification 
 
     def setup() {
         executeProjectImportAndWait(createSampleProject())
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
     }
 
     def "Removed project doesn't have Buildship artifacts"() {

@@ -82,14 +82,14 @@ class RefreshGradleClasspathContainerTest extends ProjectImportSpecification {
     private def importNewSimpleProject(String projectName) {
         def location = newProject(projectName)
         executeProjectImportAndWait(location)
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
         location
     }
 
     private def importNewMultiProject(String rootName, String subName) {
         def location = newMultiProject(rootName, subName)
         executeProjectImportAndWait(location)
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
         location
     }
 
@@ -118,7 +118,7 @@ class RefreshGradleClasspathContainerTest extends ProjectImportSpecification {
         SynchronizeGradleProjectsJob synchronizeJob = new RefreshGradleProjectsJob()
         synchronizeJob.schedule()
         synchronizeJob.join()
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
     }
 
     private static def defineLocalGroovyDependency(File buildScript) {

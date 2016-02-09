@@ -40,7 +40,7 @@ abstract class ProjectImportSpecification extends Specification {
     
     def cleanup() {
         CorePlugin.workspaceOperations().deleteAllProjects(null)
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
         workspaceLocation.listFiles().findAll{ it.isDirectory() && !it.name.startsWith('.') }.each { it.deleteDir() }
     }
 
@@ -135,7 +135,7 @@ abstract class ProjectImportSpecification extends Specification {
         workspace.root.location.toFile()
     }
 
-    protected static def waitForJobsToFinish() {
+    protected static def waitForSynchronizationJobsToFinish() {
         Job.jobManager.join(SynchronizeGradleProjectsJob.JOB_FAMILY, null)
     }
 

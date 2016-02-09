@@ -23,7 +23,7 @@ class DependencyExportTest extends ProjectImportSpecification {
 
         when:
         executeProjectImportAndWait(location, distribution)
-        waitForJobsToFinish() // wait the classpath container to be resolved
+        waitForSynchronizationJobsToFinish() // wait the classpath container to be resolved
 
         then:
         def moduleA = findProject('moduleA')
@@ -42,7 +42,7 @@ class DependencyExportTest extends ProjectImportSpecification {
 
         when:
         executeProjectImportAndWait(location, distribution)
-        waitForJobsToFinish() // wait the classpath container to be resolved
+        waitForSynchronizationJobsToFinish() // wait the classpath container to be resolved
 
         then:
         def moduleA = findProject('moduleA')
@@ -61,7 +61,7 @@ class DependencyExportTest extends ProjectImportSpecification {
 
         when:
         executeProjectImportAndWait(location, distribution)
-        waitForJobsToFinish() // wait the classpath container to be resolved
+        waitForSynchronizationJobsToFinish() // wait the classpath container to be resolved
 
         then:
         def moduleA = findProject('moduleA')
@@ -81,7 +81,7 @@ class DependencyExportTest extends ProjectImportSpecification {
 
         when:
         executeProjectImportAndWait(location, distribution)
-        waitForJobsToFinish() // wait the classpath container to be resolved
+        waitForSynchronizationJobsToFinish() // wait the classpath container to be resolved
 
         then:
         def moduleA = findProject('moduleA')
@@ -102,7 +102,7 @@ class DependencyExportTest extends ProjectImportSpecification {
 
         when:
         executeProjectImportAndWait(location, distribution)
-        waitForJobsToFinish() // wait for the compilation to be finished
+        waitForSynchronizationJobsToFinish() // wait for the compilation to be finished
 
         rebuildWorkspaceAndIndividualProjects('moduleA', 'moduleB')
 

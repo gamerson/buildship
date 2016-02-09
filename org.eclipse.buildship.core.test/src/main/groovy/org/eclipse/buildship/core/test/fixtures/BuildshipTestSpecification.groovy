@@ -40,7 +40,7 @@ abstract class BuildshipTestSpecification extends Specification {
     def cleanup() {
         // delete all project from the workspace and the corresponding content on the file system
         CorePlugin.workspaceOperations().deleteAllProjects(null)
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
         workspaceFolder.listFiles().findAll{ it.isDirectory() && !it.name.startsWith('.') }.each { it.deleteDir() }
     }
 
@@ -76,7 +76,7 @@ abstract class BuildshipTestSpecification extends Specification {
         return new File(workspaceFolder, location)
     }
 
-    protected static def waitForJobsToFinish() {
+    protected static def waitForSynchronizationJobsToFinish() {
         Job.jobManager.join(SynchronizeGradleProjectsJob.JOB_FAMILY, null)
     }
 
