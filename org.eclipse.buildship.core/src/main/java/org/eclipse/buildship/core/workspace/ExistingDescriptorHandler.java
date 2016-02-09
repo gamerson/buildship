@@ -11,29 +11,35 @@
 
 package org.eclipse.buildship.core.workspace;
 
+import org.eclipse.core.resources.IProjectDescription;
+
 /**
- * This handler decides whether existing .project files should be deleted when importing a
- * Gradle project.
+ * This handler decides whether existing .project files should be overwritten when importing a Gradle project.
  */
 public interface ExistingDescriptorHandler {
-
-    /**
-     * @return {@code true} if an existig .project file should be deleted, {@code false} otherwise.
-     */
-    boolean shouldDeleteDescriptor();
 
     ExistingDescriptorHandler ALWAYS_KEEP = new ExistingDescriptorHandler() {
 
         @Override
-        public boolean shouldDeleteDescriptor() {
+        public boolean shouldOverwriteDescriptor(IProjectDescription project) {
             return false;
         }
     };
-    ExistingDescriptorHandler ALWAYS_DELETE = new ExistingDescriptorHandler() {
+
+    ExistingDescriptorHandler ALWAYS_OVERWRITE = new ExistingDescriptorHandler() {
 
         @Override
-        public boolean shouldDeleteDescriptor() {
+        public boolean shouldOverwriteDescriptor(IProjectDescription project) {
             return true;
-        };
+        }
     };
+
+    /**
+     * Decides whether to keep or overwrite the descriptor of the given project.
+     *
+     * @param project the target project
+     * @return {@code true} if an existing .project file should be overwritten, {@code false} otherwise
+     */
+    boolean shouldOverwriteDescriptor(IProjectDescription project);
+
 }
