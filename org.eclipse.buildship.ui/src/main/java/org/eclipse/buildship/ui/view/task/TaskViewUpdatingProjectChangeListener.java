@@ -43,12 +43,12 @@ public final class TaskViewUpdatingProjectChangeListener extends WorkspaceProjec
         refreshTasksView();
     }
 
-    private void refreshTasksView() {
+    @Override
+    protected void notifyAboutProjectRemovals(Set<IProject> projects) {
         refreshTasksView();
     }
 
-    @Override
-    protected void notifyAboutProjectRemovals(Set<IProject> projects) {
+    private void refreshTasksView() {
         PlatformUI.getWorkbench().getDisplay().asyncExec(new Runnable() {
 
             @Override
