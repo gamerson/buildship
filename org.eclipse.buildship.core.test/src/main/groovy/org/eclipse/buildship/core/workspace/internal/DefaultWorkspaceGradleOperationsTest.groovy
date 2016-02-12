@@ -597,7 +597,7 @@ class DefaultWorkspaceGradleOperationsTest extends BuildshipTestSpecification {
         }
     }
 
-    def "All new projectsare handled by the NewProjectHandler"() {
+    def "All new projects are handled by the same NewProjectHandler"() {
         setup:
         EclipseProjects.newProject('subproject-a', folder('sample-project/subproject-a'))
         EclipseProjects.newProject('subproject-b', folder('sample-project/subproject-b'))
