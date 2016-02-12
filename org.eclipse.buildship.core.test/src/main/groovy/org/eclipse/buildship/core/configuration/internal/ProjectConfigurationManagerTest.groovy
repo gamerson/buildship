@@ -25,7 +25,7 @@ import org.eclipse.buildship.core.projectimport.ProjectImportConfiguration
 import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper
 import org.eclipse.buildship.core.util.progress.AsyncHandler
 import org.eclipse.buildship.core.workspace.ImportGradleProjectJob
-import org.eclipse.buildship.core.workspace.NewProjectHandler;
+import org.eclipse.buildship.core.workspace.NewProjectHandler
 import org.eclipse.buildship.core.workspace.WorkspaceOperations
 import org.eclipse.core.resources.IProject
 import org.eclipse.core.runtime.NullProgressMonitor
