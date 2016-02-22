@@ -16,6 +16,7 @@ import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
 import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.jdt.core.IJavaProject;
 
 import java.util.List;
 
@@ -63,52 +64,26 @@ public interface WorkspaceGradleOperations {
      * <li>the Gradle settings file is written</li>
      * <li>the Gradle resource filter is set</li>
      * <li>the linked resources are set</li>
-     * <li>the workspace project is further updated in case of a Java Gradle project and the workspace project having the Java nature set
-     * <ul>
-     * <li>update the source compatibility settings</li>
-     * <li>update the set of source folders</li>
-     * <li>update the Gradle classpath container</li>
-     * </ul>
-     * </li>
-     * <li>the workspace project is converted to a Java project in case of a Java Gradle project and the workspace project not having the Java nature set yet
-     * <ul>
-     * <li>a Gradle classpath container is added (this triggers a synchronize through the classpath container, handled by #1.2)</li>
-     * </ul>
-     * </li>
      * <li>the project natures and build commands are set</li>
+     * <li>if the Gradle project is a Java project
+     * <ul>
+     * <li>the Java nature is added </li>
+     * <li>the source compatibility settings are updated</li>
+     * <li>the set of source folders is updated</li>
+     * <li>the Gradle classpath container is updated</li>
+     * </ul>
+     * </li>
      * </ul>
      * </li>
      * </ol>
      * </li>
      * <li>
      * If there is an Eclipse project at the location of the Gradle project, i.e. there is a .project file in that folder, then
-     * the {@link ExistingDescriptorHandler} decides whether to keep or overwrite that existing .project file. If it is overwritten, the
-     * synchronization happens as if there was none before. If it is kept, the synchronization is as follows:
-     * <ul>
-     * <li>the Eclipse project is added to the workspace</li>
-     * <li>the Gradle nature is set</li>
-     * <li>the Gradle settings file is written</li>
-     * <li>the workspace project is further configured in case of a Java Gradle project and the workspace project having the Java nature set
-     * <ul>
-     * <li>the source compatibility settings are set</li>
-     * </ul>
-     * <li>the project natures and build commands are set</li>
-     * </ul>
+     * the {@link ExistingDescriptorHandler} decides whether to keep or overwrite that existing .project file. The project is imported
+     * into the workspace and then synchronized as specified above.
      * </li>
-     * <li>If the there is no project in the workspace nor an Eclipse project at the location of the Gradle build, the synchronization is as follows:
-     * <ul>
-     * <li>an Eclipse project is created and added to the workspace</li>
-     * <li>the Gradle nature is set</li>
-     * <li>the Gradle settings file is written</li>
-     * <li>the Gradle resource filter is set</li>
-     * <li>the linked resources are set</li>
-     * <li>a Java project is created in case of a Java Gradle project
-     * <ul>
-     * <li>a Gradle classpath container is added (this triggers a synchronize through the classpath container, handled by #1.2)</li>
-     * </ul>
-     * </li>
-     * <li>the project natures and build commands are set</li>
-     * </ul>
+     * <li>If the there is no project in the workspace, nor an Eclipse project at the location of the Gradle build, the project is imported
+     * into the workspace and then synchronized as specified above.
      * </li>
      * </ol>
      *
@@ -122,39 +97,30 @@ public interface WorkspaceGradleOperations {
     void synchronizeGradleProjectWithWorkspaceProject(OmniEclipseProject project, OmniEclipseGradleBuild gradleBuild, FixedRequestAttributes rootRequestAttributes, List<String> workingSets, ExistingDescriptorHandler existingDescriptorHandler, IProgressMonitor monitor);
 
     /**
-     * Synchronizes the given Eclipse workspace project with its Gradle counterpart, if that counterpart exists. The algorithm is as follows:
-     * <p/>
-     * <ol>
-     * <li>If the workspace project contains the Gradle nature and there is a matching Gradle project at the location of the workspace project
-     * <ul>
-     * <li>As outlined in {@link #synchronizeGradleProjectWithWorkspaceProject(OmniEclipseProject, OmniEclipseGradleBuild, FixedRequestAttributes, List, ExistingDescriptorHandler, IProgressMonitor)}</li>
-     * </ul></li>
-     * <li>In all other cases
-     * <ul>
-     * <li>As outlined in {@link #uncoupleWorkspaceProjectFromGradle(IProject, IProgressMonitor)}</li>
-     * <li>and clear the Gradle classpath container</li>
-     * </ul></li>
-     * </ol>
-     *
-     * @param workspaceProject      the project to synchronize
-     * @param gradleBuild           the Gradle build to which the Gradle project is expected to belong, can be null
-     * @param rootRequestAttributes the preferences used to query the Gradle build, can be null
-     * @param monitor               the monitor to report the progress on
-     */
-    void synchronizeWorkspaceProject(IProject workspaceProject, OmniEclipseGradleBuild gradleBuild, FixedRequestAttributes rootRequestAttributes, IProgressMonitor monitor);
-
-    /**
      * Uncouples the given Eclipse workspace project from Gradle. The algorithm is as follows:
      *
      * <ol>
+     * <li>the Gradle resource filter is removed</li>
      * <li>the Gradle nature is removed</li>
      * <li>the Gradle settings file is removed</li>
-     * <li>the Gradle resource filter is removed</li>
      * </ol>
      *
      * @param workspaceProject        the project from which to remove all Gradle specific parts
      * @param monitor                 the monitor to report the progress on
      */
     void uncoupleWorkspaceProjectFromGradle(IProject workspaceProject, IProgressMonitor monitor);
+
+    /**
+     * Updates the Gradle classpath container elements in a target Java project with the entries
+     * defined in an {@link OmniEclipseProject} instance.
+     * <p/>
+     * If the target Java project doesn't have the Gradle classpath container on its classpath, then
+     * this method has no effect.
+     *
+     * @param javaProject the target project containing the classpath container to update
+     * @param project the model supplying the entries to add to the classpath container
+     * @param monitor the monitor to report the progress on
+     */
+    void synchronizeClasspathContainer(IJavaProject javaProject, OmniEclipseProject project, IProgressMonitor monitor);
 
 }
