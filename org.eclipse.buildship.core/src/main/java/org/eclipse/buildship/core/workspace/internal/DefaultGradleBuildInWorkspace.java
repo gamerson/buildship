@@ -5,6 +5,8 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * Contributors:
+ *     Etienne Studer & Donát Csikós (Gradle Inc.) - initial API and implementation and initial documentation
  */
 
 package org.eclipse.buildship.core.workspace.internal;
@@ -19,14 +21,13 @@ import org.eclipse.buildship.core.gradle.Specs;
 import org.eclipse.buildship.core.workspace.GradleBuildInWorkspace;
 
 /**
- * Represents a set of {@link OmniEclipseProject} within an {@link OmniEclipseWorkspace} which
- * belong to the same root project.
+ * Default implementation of {@link GradleBuildInWorkspace}.
  */
 public final class DefaultGradleBuildInWorkspace implements GradleBuildInWorkspace {
 
-    private List<OmniEclipseProject> eclipseProjects;
-    private OmniEclipseWorkspace workspace;
-    private FixedRequestAttributes requestAttributes;
+    private final List<OmniEclipseProject> eclipseProjects;
+    private final OmniEclipseWorkspace workspace;
+    private final FixedRequestAttributes requestAttributes;
 
     private DefaultGradleBuildInWorkspace(OmniEclipseWorkspace workspace, FixedRequestAttributes requestAttributes) {
         this.eclipseProjects = workspace.filter(Specs.eclipseProjectIsSubProjectOf(requestAttributes.getProjectDir()));
@@ -34,26 +35,16 @@ public final class DefaultGradleBuildInWorkspace implements GradleBuildInWorkspa
         this.requestAttributes = requestAttributes;
     }
 
-    /**
-     * The projects in the workspace that were derived from the root project specified by
-     * {@link #getRequestAttributes()}
-     */
     @Override
     public List<OmniEclipseProject> getEclipseProjects() {
         return this.eclipseProjects;
     }
 
-    /**
-     * The workspace that this build is a part of.
-     */
     @Override
     public OmniEclipseWorkspace getWorkspace() {
         return this.workspace;
     }
 
-    /**
-     * The request attributes that were used to fetch the Eclipse projects of this build.
-     */
     @Override
     public FixedRequestAttributes getRequestAttributes() {
         return this.requestAttributes;

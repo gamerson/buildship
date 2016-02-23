@@ -11,8 +11,6 @@
 
 package org.eclipse.buildship.core.workspace;
 
-import java.util.List;
-
 import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
 
 import org.eclipse.core.resources.IProject;
@@ -36,7 +34,7 @@ public interface WorkspaceGradleOperations {
      * </li>
      * <li>Synchronize all Gradle projects of the Gradle build with the Eclipse workspace project counterparts:
      * <ul>
-     * <li>As outlined in {@link #synchronizeGradleProjectWithWorkspaceProject(OmniEclipseProject, GradleBuildInWorkspace, List, ExistingDescriptorHandler, IProgressMonitor)}</li>
+     * <li>As outlined in {@link #synchronizeGradleProjectWithWorkspaceProject(OmniEclipseProject, GradleBuildInWorkspace, NewProjectHandler, IProgressMonitor)}</li>
      * </ul>
      * </li>
      * </ol>

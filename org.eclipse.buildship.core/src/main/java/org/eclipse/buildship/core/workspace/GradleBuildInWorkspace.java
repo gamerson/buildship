@@ -5,6 +5,8 @@
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  *
+ * Contributors:
+ *     Etienne Studer & Donát Csikós (Gradle Inc.) - initial API and implementation and initial documentation
  */
 
 package org.eclipse.buildship.core.workspace;
@@ -23,7 +25,7 @@ public interface GradleBuildInWorkspace {
 
     /**
      * The projects in the workspace that were derived from the root project specified by
-     * {@link #getRequestAttributes()}
+     * {@link #getRequestAttributes()}.
      */
     List<OmniEclipseProject> getEclipseProjects();
 

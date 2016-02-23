@@ -192,12 +192,15 @@ public class ProjectImportWizardController {
         synchronizeJob.schedule();
         return true;
     }
-    
+
+    /**
+     * Assigns the given workingsets to the projects after import.
+     */
     private static final class AssignWorkingSetsWrapper implements NewProjectHandler {
-        
+
         private final NewProjectHandler delegate;
         private final List<String> workingSetNames;
-        
+
         public AssignWorkingSetsWrapper(NewProjectHandler delegate, List<String> workingSetNames) {
             this.delegate = delegate;
             this.workingSetNames = workingSetNames;
@@ -205,22 +208,22 @@ public class ProjectImportWizardController {
 
         @Override
         public boolean shouldImport(OmniEclipseProject projectModel) {
-            return delegate.shouldImport(projectModel);
+            return this.delegate.shouldImport(projectModel);
         }
-        
+
         @Override
         public boolean shouldOverwriteDescriptor(IProjectDescription descriptor, OmniEclipseProject projectModel) {
-            return delegate.shouldOverwriteDescriptor(descriptor, projectModel);
+            return this.delegate.shouldOverwriteDescriptor(descriptor, projectModel);
         }
 
         @Override
         public void afterImport(IProject project, OmniEclipseProject projectModel) {
-            delegate.afterImport(project, projectModel);
+            this.delegate.afterImport(project, projectModel);
             IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
-            IWorkingSet[] workingSets = WorkingSetUtils.toWorkingSets(workingSetNames);
+            IWorkingSet[] workingSets = WorkingSetUtils.toWorkingSets(this.workingSetNames);
             workingSetManager.addToWorkingSets(project, workingSets);
         }
-        
+
     }
 
     private void ensureGradleViewsAreVisible() {

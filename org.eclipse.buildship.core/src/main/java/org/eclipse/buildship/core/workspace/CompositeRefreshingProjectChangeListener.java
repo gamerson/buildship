@@ -4,18 +4,21 @@
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
+ *
+ * Contributors:
+ *     Etienne Studer & Donát Csikós (Gradle Inc.) - initial API and implementation and initial documentation
  */
+
 package org.eclipse.buildship.core.workspace;
 
 import java.util.Set;
 
-import com.gradleware.tooling.toolingmodel.OmniEclipseWorkspace;
 import com.gradleware.tooling.toolingmodel.repository.FetchStrategy;
 
 import org.eclipse.core.resources.IProject;
 
 /**
- * Refreshes the {@link OmniEclipseWorkspace} when a project is deleted.
+ * Refreshes the corresponding composite when a project is deleted.
  *
  * Refresh on project addition is not necessary, as that is already handled by the
  * {@link ImportGradleProjectJob}.
