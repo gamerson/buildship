@@ -124,4 +124,9 @@ public abstract class ToolingApiWorkspaceJob extends WorkspaceJob {
         this.tokenSource.cancel();
     }
 
+    @Override
+    public boolean belongsTo(Object family) {
+        return CorePlugin.GRADLE_JOB_FAMILY.equals(family);
+    }
+
 }

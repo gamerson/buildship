@@ -40,7 +40,7 @@ abstract class BuildshipTestSpecification extends Specification {
     def cleanup() {
         // delete all project from the workspace and the corresponding content on the file system
         CorePlugin.workspaceOperations().deleteAllProjects(null)
-        waitForSynchronizationJobsToFinish()
+        waitForGradleJobsToFinish()
         workspaceFolder.listFiles().findAll{ it.isDirectory() && !it.name.startsWith('.') }.each { it.deleteDir() }
     }
 
@@ -49,7 +49,7 @@ abstract class BuildshipTestSpecification extends Specification {
     protected File getWorkspaceFolder() {
         workspaceRoot.location.toFile()
     }
-    
+
     protected getWorkspaceRoot() {
         LegacyEclipseSpockTestHelper.workspace.root
     }
@@ -76,8 +76,8 @@ abstract class BuildshipTestSpecification extends Specification {
         return new File(workspaceFolder, location)
     }
 
-    protected static def waitForSynchronizationJobsToFinish() {
-        Job.jobManager.join(SynchronizeGradleProjectsJob.JOB_FAMILY, null)
+    protected static def waitForGradleJobsToFinish() {
+        Job.jobManager.join(CorePlugin.GRADLE_JOB_FAMILY, null)
     }
 
     protected static def delay(long waitTimeMillis) {

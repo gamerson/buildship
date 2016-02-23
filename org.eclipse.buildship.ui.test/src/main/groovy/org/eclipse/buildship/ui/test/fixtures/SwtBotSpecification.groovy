@@ -45,7 +45,7 @@ abstract class SwtBotSpecification extends Specification {
 
     def cleanup() {
         CorePlugin.workspaceOperations().deleteAllProjects(null)
-        waitForSynchronizationJobsToFinish()
+        waitForGradleJobsToFinish()
     }
 
     private static void closeWelcomePageIfAny() {
@@ -90,13 +90,13 @@ abstract class SwtBotSpecification extends Specification {
         })
     }
 
-    protected static void cancelSynchronizationJobsAndWait() {
-        Job.jobManager.cancel(null)
-        waitForSynchronizationJobsToFinish()
+    protected static void cancelGradleJobsAndWait() {
+        Job.jobManager.cancel(CorePlugin.GRADLE_JOB_FAMILY)
+        waitForGradleJobsToFinish()
     }
 
-    protected static void waitForSynchronizationJobsToFinish() {
-        Job.jobManager.join(SynchronizeGradleProjectsJob.JOB_FAMILY, null)
+    protected static void waitForGradleJobsToFinish() {
+        Job.jobManager.join(CorePlugin.GRADLE_JOB_FAMILY, null)
     }
 
     protected static void delay(long waitTimeMillis) {

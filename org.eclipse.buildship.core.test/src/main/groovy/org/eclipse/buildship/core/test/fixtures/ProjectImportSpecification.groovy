@@ -37,10 +37,10 @@ abstract class ProjectImportSpecification extends Specification {
 
     @Rule
     TemporaryFolder tempFolder
-    
+
     def cleanup() {
         CorePlugin.workspaceOperations().deleteAllProjects(null)
-        waitForSynchronizationJobsToFinish()
+        waitForGradleJobsToFinish()
         workspaceLocation.listFiles().findAll{ it.isDirectory() && !it.name.startsWith('.') }.each { it.deleteDir() }
     }
 
@@ -135,8 +135,8 @@ abstract class ProjectImportSpecification extends Specification {
         workspace.root.location.toFile()
     }
 
-    protected static def waitForSynchronizationJobsToFinish() {
-        Job.jobManager.join(SynchronizeGradleProjectsJob.JOB_FAMILY, null)
+    protected static def waitForGradleJobsToFinish() {
+        Job.jobManager.join(CorePlugin.GRADLE_JOB_FAMILY, null)
     }
 
     protected static def delay(long waitTimeMillis) {

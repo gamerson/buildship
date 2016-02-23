@@ -106,7 +106,7 @@ public final class LoadEclipseWorkspaceJob extends ToolingApiJob {
 
     @Override
     public boolean belongsTo(Object family) {
-        return getJobFamilyName().equals(family);
+        return super.belongsTo(family) || getJobFamilyName().equals(family);
     }
 
     @Override

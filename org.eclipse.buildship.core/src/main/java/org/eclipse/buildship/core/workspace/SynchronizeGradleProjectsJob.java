@@ -41,9 +41,6 @@ import org.eclipse.buildship.core.workspace.internal.DefaultGradleBuildInWorkspa
  * Base class for jobs that synchronize a set of Gradle projects with their workspace counterparts.
  */
 public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJob {
-
-    public static final String JOB_FAMILY = "Gradle_Synchronization_Jobs";
-    
     private final FetchStrategy fetchStrategy;
 
     public SynchronizeGradleProjectsJob(String description, boolean notifyUserOfBuildFailures, FetchStrategy fetchStrategy) {
@@ -107,10 +104,5 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
         } finally {
             monitor.done();
         }
-    }
-
-    @Override
-    public boolean belongsTo(Object family) {
-        return JOB_FAMILY.equals(family);
     }
 }

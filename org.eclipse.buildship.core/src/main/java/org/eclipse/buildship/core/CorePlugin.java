@@ -67,6 +67,8 @@ public final class CorePlugin extends Plugin {
 
     public static final String PLUGIN_ID = "org.eclipse.buildship.core"; //$NON-NLS-1$
 
+    public static final String GRADLE_JOB_FAMILY = "org.eclipse.buildship.core.jobs";
+
     private static CorePlugin plugin;
 
     // do not use generics-aware signature since this causes compilation troubles (JDK, Spock)

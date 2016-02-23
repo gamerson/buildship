@@ -115,9 +115,4 @@ public final class UpdateClasspathContainerJob extends ToolingApiWorkspaceJob {
         CompositeModelRepository repository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository(allRequestAttributes);
         return repository.fetchEclipseWorkspace(transientAttributes, this.fetchStrategy);
     }
-
-    @Override
-    public boolean belongsTo(Object family) {
-        return SynchronizeGradleProjectsJob.JOB_FAMILY.equals(family);
-    }
 }

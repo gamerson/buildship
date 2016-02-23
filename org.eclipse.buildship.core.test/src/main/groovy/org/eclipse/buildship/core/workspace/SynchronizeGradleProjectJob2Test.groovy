@@ -201,7 +201,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
         when:
         def root = workspaceRoot
         root.getProject("foo2").delete(true, null)
-        waitForSynchronizationJobsToFinish()
+        waitForGradleJobsToFinish()
 
         then:
         root.projects.length == 1
