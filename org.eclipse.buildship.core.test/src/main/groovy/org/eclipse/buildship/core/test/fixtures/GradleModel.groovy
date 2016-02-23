@@ -16,12 +16,16 @@ import org.gradle.tooling.GradleConnector
 import com.gradleware.tooling.toolingclient.GradleDistribution
 import com.gradleware.tooling.toolingmodel.OmniEclipseGradleBuild
 import com.gradleware.tooling.toolingmodel.OmniEclipseProject
+import com.gradleware.tooling.toolingmodel.OmniEclipseWorkspace;
+import com.gradleware.tooling.toolingmodel.repository.CompositeModelRepository
 import com.gradleware.tooling.toolingmodel.repository.FetchStrategy
 import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes
 import com.gradleware.tooling.toolingmodel.repository.SimpleModelRepository
 import com.gradleware.tooling.toolingmodel.repository.TransientRequestAttributes
 
 import org.eclipse.buildship.core.CorePlugin
+import org.eclipse.buildship.core.workspace.GradleBuildInWorkspace
+import org.eclipse.buildship.core.workspace.internal.DefaultGradleBuildInWorkspace;;
 
 
 /**
@@ -29,11 +33,9 @@ import org.eclipse.buildship.core.CorePlugin
  */
 abstract class GradleModel {
 
-    private FixedRequestAttributes attributes
-    private OmniEclipseGradleBuild build
+    private GradleBuildInWorkspace build
 
-    GradleModel(FixedRequestAttributes attributes, OmniEclipseGradleBuild model) {
-        this.attributes = attributes
+    GradleModel(GradleBuildInWorkspace model) {
         this.build = model
     }
 
@@ -43,7 +45,7 @@ abstract class GradleModel {
      * @return the request attributes
      */
     public FixedRequestAttributes getAttributes() {
-        attributes
+        build.requestAttributes
     }
 
     /**
@@ -51,7 +53,7 @@ abstract class GradleModel {
      *
      * @return the OmniEclipseGradleBuild model
      */
-    public OmniEclipseGradleBuild getBuild() {
+    public GradleBuildInWorkspace getBuild() {
         build
     }
 
@@ -61,7 +63,7 @@ abstract class GradleModel {
      * @return the OmniEclipseProject model
      */
     public OmniEclipseProject eclipseProject(String name) {
-        build.rootEclipseProject.all.find { it.name == name }
+        build.eclipseProjects.find { it.name == name }
     }
 
     /**
@@ -71,8 +73,8 @@ abstract class GradleModel {
      */
     static GradleModel fromProject(File rootProjectFolder) {
         FixedRequestAttributes attributes = new FixedRequestAttributes(rootProjectFolder, null, GradleDistribution.fromBuild(), null, [], [])
-        SimpleModelRepository modelRepository = CorePlugin.modelRepositoryProvider().getModelRepository(attributes)
-        OmniEclipseGradleBuild eclipseGradleBuild = modelRepository.fetchEclipseGradleBuild(new TransientRequestAttributes(false, System.out, System.err, System.in, [], [], GradleConnector.newCancellationTokenSource().token()), FetchStrategy.FORCE_RELOAD)
-        new GradleModel(attributes, eclipseGradleBuild) {}
+        CompositeModelRepository modelRepository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository([attributes] as Set)
+        OmniEclipseWorkspace workspace = modelRepository.fetchEclipseWorkspace(new TransientRequestAttributes(false, System.out, System.err, System.in, [], [], GradleConnector.newCancellationTokenSource().token()), FetchStrategy.FORCE_RELOAD)
+        new GradleModel(DefaultGradleBuildInWorkspace.from(workspace, attributes)) {}
     }
 }

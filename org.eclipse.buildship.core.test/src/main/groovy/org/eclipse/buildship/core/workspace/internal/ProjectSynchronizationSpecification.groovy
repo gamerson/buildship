@@ -14,17 +14,17 @@ import org.eclipse.buildship.core.test.fixtures.EclipseProjects
 import org.eclipse.buildship.core.test.fixtures.FileStructure
 import org.eclipse.buildship.core.test.fixtures.GradleModel
 import org.eclipse.buildship.core.test.fixtures.LegacyEclipseSpockTestHelper
-import org.eclipse.buildship.core.workspace.ExistingDescriptorHandler
+import org.eclipse.buildship.core.workspace.NewProjectHandler;
 
 abstract class ProjectSynchronizationSpecification extends BuildshipTestSpecification {
-    protected def executeSynchronizeGradleProjectWithWorkspaceProjectAndWait(GradleModel gradleModel, ExistingDescriptorHandler existingDescriptorHandler = ExistingDescriptorHandler.ALWAYS_KEEP) {
+    protected def executeSynchronizeGradleProjectWithWorkspaceProjectAndWait(GradleModel gradleModel, NewProjectHandler newProjectHandler = NewProjectHandler.IMPORT_AND_MERGE) {
         // Note: executing the synchronizeGradleProjectWithWorkspaceProject() in a new job is necessary
         // as the jdt operations expect that all modifications are guarded by proper rules. For the sake
         // of this test class we simply use the workspace root as the job rule.
         Job job = new Job('') {
             protected IStatus run(IProgressMonitor monitor) {
                 Job.jobManager.beginRule(LegacyEclipseSpockTestHelper.workspace.root, monitor)
-                new DefaultWorkspaceGradleOperations().synchronizeGradleBuildWithWorkspace(gradleModel.build, gradleModel.attributes, [], existingDescriptorHandler, new NullProgressMonitor())
+                new DefaultWorkspaceGradleOperations().synchronizeGradleBuildWithWorkspace(gradleModel.build, newProjectHandler, new NullProgressMonitor())
                 Job.jobManager.endRule(LegacyEclipseSpockTestHelper.workspace.root)
                 Status.OK_STATUS
             }

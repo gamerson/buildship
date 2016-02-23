@@ -1,36 +1,39 @@
 package org.eclipse.buildship.core.workspace
 
-import com.google.common.collect.ImmutableList
-import com.gradleware.tooling.toolingclient.GradleDistribution
-import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes
-import org.eclipse.buildship.core.CorePlugin
-import org.eclipse.buildship.core.configuration.GradleProjectBuilder
-import org.eclipse.buildship.core.configuration.GradleProjectNature
-import org.eclipse.buildship.core.test.fixtures.LegacyEclipseSpockTestHelper
-import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper
-import org.eclipse.buildship.core.util.progress.AsyncHandler
-import org.eclipse.buildship.core.util.variable.ExpressionUtils
-import org.eclipse.core.resources.IWorkspace
-import org.eclipse.core.runtime.IPath
-import org.eclipse.core.runtime.NullProgressMonitor
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
 
-class SynchronizeGradleProjectJob2Test extends Specification {
+import com.google.common.collect.ImmutableList
+
+import com.gradleware.tooling.toolingclient.GradleDistribution
+import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes
+
+import org.eclipse.core.resources.IWorkspace
+import org.eclipse.core.runtime.IPath
+import org.eclipse.core.runtime.NullProgressMonitor
+import org.eclipse.jdt.core.IClasspathEntry
+import org.eclipse.jdt.core.JavaCore
+
+import org.eclipse.buildship.core.CorePlugin
+import org.eclipse.buildship.core.configuration.GradleProjectBuilder
+import org.eclipse.buildship.core.configuration.GradleProjectNature
+import org.eclipse.buildship.core.test.fixtures.BuildshipTestSpecification;
+import org.eclipse.buildship.core.test.fixtures.LegacyEclipseSpockTestHelper
+import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper
+import org.eclipse.buildship.core.util.progress.AsyncHandler
+import org.eclipse.buildship.core.util.variable.ExpressionUtils
+
+class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
 
     @Rule
     TemporaryFolder tempFolder
-
-    def cleanup() {
-        CorePlugin.workspaceOperations().deleteAllProjects(null)
-    }
-
+    
     def "Project import job creates a new project in the workspace"(boolean projectDescriptorExists) {
         setup:
         def applyJavaPlugin = false
         File projectLocation = newProject(projectDescriptorExists, applyJavaPlugin)
-        SynchronizeGradleProjectJob job = newRefreshGradleProjectJob(projectLocation)
+        ImportGradleProjectJob job = newImportGradleProjectJob(projectLocation)
 
         when:
         job.schedule()
@@ -46,7 +49,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
     def "Project descriptors should be created iff they don't already exist"(boolean applyJavaPlugin, boolean projectDescriptorExists, String descriptorComment) {
         setup:
         File rootProject = newProject(projectDescriptorExists, applyJavaPlugin)
-        SynchronizeGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newImportGradleProjectJob(rootProject)
 
         when:
         job.schedule()
@@ -68,7 +71,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
     def "Imported projects always have Gradle builder and nature"(boolean projectDescriptorExists) {
         setup:
         File rootProject = newProject(projectDescriptorExists, false)
-        SynchronizeGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newImportGradleProjectJob(rootProject)
 
         when:
         job.schedule()
@@ -86,7 +89,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
     def "Imported parent projects have filters to hide the content of the children and the build folders"() {
         setup:
         File rootProject = newMultiProject()
-        SynchronizeGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newImportGradleProjectJob(rootProject)
 
         when:
         job.schedule()
@@ -106,13 +109,13 @@ class SynchronizeGradleProjectJob2Test extends Specification {
         File rootProject = newMultiProject()
 
         when:
-        SynchronizeGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newImportGradleProjectJob(rootProject)
         job.schedule()
         job.join()
 
         workspaceOperations.deleteAllProjects(null)
 
-        job = newRefreshGradleProjectJob(rootProject)
+        job = newImportGradleProjectJob(rootProject)
         job.schedule()
         job.join()
 
@@ -127,7 +130,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
     def "Can import deleted project located in default location"() {
         setup:
         def workspaceOperations = CorePlugin.workspaceOperations()
-        def workspaceRootLocation = LegacyEclipseSpockTestHelper.workspace.root.location.toFile()
+        def workspaceRootLocation = workspaceRoot.location.toFile()
         def location = new File(workspaceRootLocation, 'projectname')
         location.mkdirs()
 
@@ -135,7 +138,7 @@ class SynchronizeGradleProjectJob2Test extends Specification {
         project.delete(false, true, new NullProgressMonitor())
 
         when:
-        SynchronizeGradleProjectJob job = newRefreshGradleProjectJob(new File(workspaceRootLocation, "projectname"))
+        ImportGradleProjectJob job = newImportGradleProjectJob(new File(workspaceRootLocation, "projectname"))
         job.schedule()
         job.join()
 
@@ -146,21 +149,122 @@ class SynchronizeGradleProjectJob2Test extends Specification {
     def "Can import project located in workspace folder and with custom root name"() {
         setup:
         File rootProject = newProjectWithCustomNameInWorkspaceFolder()
-        SynchronizeGradleProjectJob job = newRefreshGradleProjectJob(rootProject)
+        ImportGradleProjectJob job = newImportGradleProjectJob(rootProject)
 
         when:
         job.schedule()
         job.join()
 
         then:
-        LegacyEclipseSpockTestHelper.workspace.root.projects.length == 1
-        def project = LegacyEclipseSpockTestHelper.workspace.root.projects[0]
+        workspaceRoot.projects.length == 1
+        def project = workspaceRoot.projects[0]
         def locationExpression = ExpressionUtils.encodeWorkspaceLocation(project)
         def decodedLocation = ExpressionUtils.decode(locationExpression)
         rootProject.equals(new File(decodedLocation))
 
         cleanup:
         rootProject.deleteDir()
+    }
+
+    def "Duplicate project names are de-duplicated"() {
+        setup:
+        def projectA = tempFolder.newFolder('projectA')
+        new File(projectA, 'settings.gradle') << "rootProject.name = 'foo'"
+        def projectB = tempFolder.newFolder('projectB')
+        new File(projectB, 'settings.gradle') << "rootProject.name = 'foo'"
+        def importA = newImportGradleProjectJob(projectA)
+        def importB = newImportGradleProjectJob(projectB)
+
+        when:
+        importA.schedule()
+        importA.join()
+        importB.schedule()
+        importB.join()
+
+        then:
+        def projects = workspaceRoot.projects
+        projects.length == 2
+        projects*.name as Set == ['foo1', 'foo2'] as Set
+    }
+
+    def "When a name conflict no longer exists, the project takes back its simple name"() {
+        setup:
+        ["projectA", "projectB"].each { name -> 
+            def folder = tempFolder.newFolder(name)
+            new File(folder, 'settings.gradle') << "rootProject.name = 'foo'"
+            def importJob = newImportGradleProjectJob(folder)
+            
+            importJob.schedule()
+            importJob.join()
+        }
+        
+        when:
+        def root = workspaceRoot
+        root.getProject("foo2").delete(true, null)
+        waitForSynchronizationJobsToFinish()
+
+        then:
+        root.projects.length == 1
+        root.getProject("foo").accessible
+    }
+    
+    def "Projects can be renamed in cycles"() {
+        setup:
+        def projectA = tempFolder.newFolder('projectA')
+        def projectB = tempFolder.newFolder('projectB')
+        def importA = newImportGradleProjectJob(projectA)
+        def importB = newImportGradleProjectJob(projectB)
+        def refreshWorkspace = new RefreshGradleProjectsJob()
+
+        when:
+        importA.schedule()
+        importA.join()
+        importB.schedule()
+        importB.join()
+        new File(projectA, 'settings.gradle') << "rootProject.name = 'projectB'"
+        new File(projectB, 'settings.gradle') << "rootProject.name = 'projectA'"
+        refreshWorkspace.schedule()
+        refreshWorkspace.join()
+
+        then:
+        def projects = workspaceRoot.projects
+        projects.length == 2
+        workspaceRoot.getProject('projectA').getLocation().lastSegment() == "projectB"
+        workspaceRoot.getProject('projectB').getLocation().lastSegment() == "projectA"
+    }
+
+    def "Project dependencies stay intact when renaming a project"() {
+        setup:
+        ['projectA', 'projectB'].each { name ->
+            def root = tempFolder.newFolder(name)
+            new File(root, 'settings.gradle') << "include 'sub1', 'sub2'"
+            new File(root, 'build.gradle') << """
+                subprojects {
+                    apply plugin: 'java'
+                }
+                project('sub2') {
+                    dependencies {
+                        compile project(':sub1')
+                    }
+                }
+            """
+            new File(root, 'sub1/src/main/java').mkdirs()
+            new File(root, 'sub2/src/main/java').mkdirs()
+            def importRoot = newImportGradleProjectJob(root)
+            importRoot.schedule()
+            importRoot.join()
+        }
+
+        when:
+        def refreshWorkspace = new RefreshGradleProjectsJob()
+        refreshWorkspace.schedule()
+        refreshWorkspace.join()
+
+        then:
+        def sub2= workspaceRoot.getProject('projectA-sub2')
+        JavaCore.create(sub2).resolvedClasspath.find { entry ->
+            entry.entryKind == IClasspathEntry.CPE_PROJECT && entry.path.toString() == '/projectA-sub1'
+        }
     }
 
     def newProject(boolean projectDescriptorExists, boolean applyJavaPlugin) {
@@ -210,10 +314,10 @@ class SynchronizeGradleProjectJob2Test extends Specification {
         root
     }
 
-    def newRefreshGradleProjectJob(File location) {
+    def ImportGradleProjectJob newImportGradleProjectJob(File location) {
         def distribution = GradleDistributionWrapper.from(GradleDistribution.fromBuild()).toGradleDistribution()
         def rootRequestAttributes = new FixedRequestAttributes(location, null, distribution, null, ImmutableList.of(), ImmutableList.of())
-        new SynchronizeGradleProjectJob(rootRequestAttributes, [], AsyncHandler.NO_OP)
+        new ImportGradleProjectJob(rootRequestAttributes, NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP)
     }
 
 }

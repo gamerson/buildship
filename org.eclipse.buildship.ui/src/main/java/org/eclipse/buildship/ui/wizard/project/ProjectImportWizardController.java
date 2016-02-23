@@ -11,13 +11,30 @@
 
 package org.eclipse.buildship.ui.wizard.project;
 
+import java.io.File;
+import java.util.List;
+
 import com.google.common.base.Optional;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
+
+import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
 import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
 import com.gradleware.tooling.toolingutils.binding.Property;
 import com.gradleware.tooling.toolingutils.binding.ValidationListener;
 import com.gradleware.tooling.toolingutils.binding.Validator;
+
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.wizard.IWizard;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkingSet;
+import org.eclipse.ui.IWorkingSetManager;
+import org.eclipse.ui.PlatformUI;
+
 import org.eclipse.buildship.core.projectimport.ProjectImportConfiguration;
 import org.eclipse.buildship.core.util.binding.Validators;
 import org.eclipse.buildship.core.util.collections.CollectionsUtils;
@@ -26,20 +43,12 @@ import org.eclipse.buildship.core.util.gradle.GradleDistributionValidator;
 import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper;
 import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper.DistributionType;
 import org.eclipse.buildship.core.util.progress.AsyncHandler;
-import org.eclipse.buildship.core.workspace.ExistingDescriptorHandler;
-import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectJob;
+import org.eclipse.buildship.core.workspace.ImportGradleProjectJob;
+import org.eclipse.buildship.core.workspace.NewProjectHandler;
 import org.eclipse.buildship.ui.util.workbench.WorkbenchUtils;
+import org.eclipse.buildship.ui.util.workbench.WorkingSetUtils;
 import org.eclipse.buildship.ui.view.execution.ExecutionsView;
 import org.eclipse.buildship.ui.view.task.TaskView;
-import org.eclipse.core.runtime.jobs.IJobChangeEvent;
-import org.eclipse.core.runtime.jobs.JobChangeAdapter;
-import org.eclipse.jface.dialogs.IDialogSettings;
-import org.eclipse.jface.wizard.IWizard;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PlatformUI;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * Controller class for the {@link ProjectImportWizard}. Contains all non-UI related calculations
@@ -167,10 +176,10 @@ public class ProjectImportWizardController {
         return this.configuration;
     }
 
-    public boolean performImportProject(AsyncHandler initializer, ExistingDescriptorHandler existingDescriptorHandler) {
+    public boolean performImportProject(AsyncHandler initializer, NewProjectHandler newProjectHandler) {
         FixedRequestAttributes rootRequestAttributes = this.configuration.toFixedAttributes();
         List<String> workingSets = this.configuration.getApplyWorkingSets().getValue() ? ImmutableList.copyOf(this.configuration.getWorkingSets().getValue()) : ImmutableList.<String>of();
-        SynchronizeGradleProjectJob synchronizeJob = new SynchronizeGradleProjectJob(rootRequestAttributes, workingSets, existingDescriptorHandler, initializer);
+        ImportGradleProjectJob synchronizeJob = new ImportGradleProjectJob(rootRequestAttributes, new AssignWorkingSetsWrapper(newProjectHandler, workingSets), initializer);
         synchronizeJob.addJobChangeListener(new JobChangeAdapter() {
 
             @Override
@@ -182,6 +191,36 @@ public class ProjectImportWizardController {
         });
         synchronizeJob.schedule();
         return true;
+    }
+    
+    private static final class AssignWorkingSetsWrapper implements NewProjectHandler {
+        
+        private final NewProjectHandler delegate;
+        private final List<String> workingSetNames;
+        
+        public AssignWorkingSetsWrapper(NewProjectHandler delegate, List<String> workingSetNames) {
+            this.delegate = delegate;
+            this.workingSetNames = workingSetNames;
+        }
+
+        @Override
+        public boolean shouldImport(OmniEclipseProject projectModel) {
+            return delegate.shouldImport(projectModel);
+        }
+        
+        @Override
+        public boolean shouldOverwriteDescriptor(IProjectDescription descriptor, OmniEclipseProject projectModel) {
+            return delegate.shouldOverwriteDescriptor(descriptor, projectModel);
+        }
+
+        @Override
+        public void afterImport(IProject project, OmniEclipseProject projectModel) {
+            delegate.afterImport(project, projectModel);
+            IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
+            IWorkingSet[] workingSets = WorkingSetUtils.toWorkingSets(workingSetNames);
+            workingSetManager.addToWorkingSets(project, workingSets);
+        }
+        
     }
 
     private void ensureGradleViewsAreVisible() {

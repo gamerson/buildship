@@ -9,7 +9,7 @@ import org.eclipse.core.resources.IResource
 import org.eclipse.core.runtime.NullProgressMonitor
 import org.eclipse.jdt.core.JavaCore
 
-class SynchronizeGradleProjectJobTest extends ProjectImportSpecification {
+class RefreshGradleProjectJobTest extends ProjectImportSpecification {
 
     def setup() {
         executeProjectImportAndWait(createSampleProject())
@@ -22,8 +22,8 @@ class SynchronizeGradleProjectJobTest extends ProjectImportSpecification {
         """
 
         when:
-        new SynchronizeGradleProjectsJob([findProject('moduleA')] as List).schedule()
-        waitForJobsToFinish()
+        new RefreshGradleProjectsJob().schedule()
+        waitForSynchronizationJobsToFinish()
 
         then:
         JavaCore.create(findProject('moduleA')).resolvedClasspath.find{ it.path.toPortableString().endsWith('junit-4.12.jar') }
@@ -36,8 +36,8 @@ class SynchronizeGradleProjectJobTest extends ProjectImportSpecification {
         """
 
         when:
-        new SynchronizeGradleProjectsJob([findProject('moduleB')] as List).schedule()
-        waitForJobsToFinish()
+        new RefreshGradleProjectsJob().schedule()
+        waitForSynchronizationJobsToFinish()
 
         then:
         IProject project = findProject('moduleB')
@@ -58,8 +58,8 @@ class SynchronizeGradleProjectJobTest extends ProjectImportSpecification {
         folder('sample', 'moduleC', 'src', 'main', 'java')
 
         when:
-        new SynchronizeGradleProjectsJob([findProject('moduleB')] as List).schedule()
-        waitForJobsToFinish()
+        new RefreshGradleProjectsJob().schedule()
+        waitForSynchronizationJobsToFinish()
 
         then:
         IProject project = findProject('moduleC')
@@ -78,7 +78,7 @@ class SynchronizeGradleProjectJobTest extends ProjectImportSpecification {
         file('sample', 'moduleC', '.project') <<
         '''<?xml version="1.0" encoding="UTF-8"?>
             <projectDescription>
-              <name>simple-project</name>
+              <name>moduleC</name>
               <comment>original</comment>
               <projects></projects>
               <buildSpec></buildSpec>
@@ -89,11 +89,11 @@ class SynchronizeGradleProjectJobTest extends ProjectImportSpecification {
         IProject project = workspace.root.getProject(description.getName());
         project.create(description, null);
         project.open(IResource.BACKGROUND_REFRESH, null);
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
 
         when:
-        new SynchronizeGradleProjectsJob([findProject('sample')] as List).schedule()
-        waitForJobsToFinish()
+        new RefreshGradleProjectsJob().schedule()
+        waitForSynchronizationJobsToFinish()
 
         then:
         GradleProjectNature.INSTANCE.isPresentOn(project)

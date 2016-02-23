@@ -16,7 +16,7 @@ class UpdateClasspathContainerJobTest extends ProjectImportSpecification {
 
     def setup() {
         executeProjectImportAndWait(createSampleProject())
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
     }
 
     def "If a project is removed from the Gradle model, the container updater does nothing"() {

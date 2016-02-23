@@ -58,7 +58,7 @@ class ProjectPreviewWizardPageUiTest extends SwtBotSpecification {
 
         when:
         startImportPreviewAndCancelWizard(location)
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
 
         then:
         !logEntries.any {it.exception?.cause instanceof SWTException && it.exception?.cause?.message?.contains('disposed') }

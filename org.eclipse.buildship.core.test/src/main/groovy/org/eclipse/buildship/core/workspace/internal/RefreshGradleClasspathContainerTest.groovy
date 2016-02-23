@@ -3,6 +3,7 @@ package org.eclipse.buildship.core.workspace.internal
 import org.eclipse.buildship.core.CorePlugin
 import org.eclipse.buildship.core.test.fixtures.ProjectImportSpecification
 import org.eclipse.buildship.core.workspace.GradleClasspathContainer
+import org.eclipse.buildship.core.workspace.RefreshGradleProjectsJob
 import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob
 
 import org.eclipse.core.runtime.Path
@@ -25,7 +26,7 @@ class RefreshGradleClasspathContainerTest extends ProjectImportSpecification {
         hasLocalGroovyDependencyDefinedInClasspathContainer(project)
     }
 
-    def "Update changes the classpath of all related projects"() {
+    def "Update changes the classpath of subprojects"() {
         setup:
         File location = importNewMultiProject('rootproject', 'subproject')
         IJavaProject rootProject = findJavaProject('rootproject')
@@ -42,7 +43,7 @@ class RefreshGradleClasspathContainerTest extends ProjectImportSpecification {
         hasLocalGroovyDependencyDefinedInClasspathContainer(subProject)
     }
 
-    def "Update doesn't change the classpath of unrelated projects"() {
+    def "Update changes the classpath of all root projects"() {
         setup:
         File unrelatedProjectLocation = importNewSimpleProject('unrelatedproject')
         File location = importNewSimpleProject('simpleproject')
@@ -57,7 +58,7 @@ class RefreshGradleClasspathContainerTest extends ProjectImportSpecification {
 
         then:
         hasLocalGroovyDependencyDefinedInClasspathContainer(project)
-        !hasLocalGroovyDependencyDefinedInClasspathContainer(unrelatedProject)
+        hasLocalGroovyDependencyDefinedInClasspathContainer(unrelatedProject)
     }
 
     def "Updates multiple project roots at the same time"() {
@@ -81,14 +82,14 @@ class RefreshGradleClasspathContainerTest extends ProjectImportSpecification {
     private def importNewSimpleProject(String projectName) {
         def location = newProject(projectName)
         executeProjectImportAndWait(location)
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
         location
     }
 
     private def importNewMultiProject(String rootName, String subName) {
         def location = newMultiProject(rootName, subName)
         executeProjectImportAndWait(location)
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
         location
     }
 
@@ -114,10 +115,10 @@ class RefreshGradleClasspathContainerTest extends ProjectImportSpecification {
 
     private static def executeSynchronizeGradleProjectsJobAndWait(IJavaProject... javaProjects) {
         def projects = javaProjects.collect { it.project }
-        SynchronizeGradleProjectsJob synchronizeJob = new SynchronizeGradleProjectsJob(projects)
+        SynchronizeGradleProjectsJob synchronizeJob = new RefreshGradleProjectsJob()
         synchronizeJob.schedule()
         synchronizeJob.join()
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
     }
 
     private static def defineLocalGroovyDependency(File buildScript) {

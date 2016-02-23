@@ -11,14 +11,13 @@
 
 package org.eclipse.buildship.core.workspace;
 
-import com.gradleware.tooling.toolingmodel.OmniEclipseGradleBuild;
+import java.util.List;
+
 import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
-import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
-
-import java.util.List;
 
 /**
  * Provides operations related to querying and modifying the Gradle specific parts of
@@ -37,18 +36,16 @@ public interface WorkspaceGradleOperations {
      * </li>
      * <li>Synchronize all Gradle projects of the Gradle build with the Eclipse workspace project counterparts:
      * <ul>
-     * <li>As outlined in {@link #synchronizeGradleProjectWithWorkspaceProject(OmniEclipseProject, OmniEclipseGradleBuild, FixedRequestAttributes, List, ExistingDescriptorHandler, IProgressMonitor)}</li>
+     * <li>As outlined in {@link #synchronizeGradleProjectWithWorkspaceProject(OmniEclipseProject, GradleBuildInWorkspace, List, ExistingDescriptorHandler, IProgressMonitor)}</li>
      * </ul>
      * </li>
      * </ol>
      *
-     * @param gradleBuild               the Gradle build to synchronize
-     * @param rootRequestAttributes     the preferences used to query the Gradle build
-     * @param workingSets               the working set to assign the imported projects to
-     * @param existingDescriptorHandler whether to keep or delete existing .project files
-     * @param monitor                   the monitor to report the progress on
+     * @param gradleBuild           the Gradle build to synchronize
+     * @param newProjectHandler     what to do with projects that are not imported yet
+     * @param monitor               the monitor to report the progress on
      */
-    void synchronizeGradleBuildWithWorkspace(OmniEclipseGradleBuild gradleBuild, FixedRequestAttributes rootRequestAttributes, List<String> workingSets, ExistingDescriptorHandler existingDescriptorHandler, IProgressMonitor monitor);
+    void synchronizeGradleBuildWithWorkspace(GradleBuildInWorkspace gradleBuild, NewProjectHandler newProjectHandler, IProgressMonitor monitor);
 
     /**
      * Synchronizes the given Gradle project with its Eclipse workspace project counterpart. The algorithm is as follows:
@@ -61,6 +58,7 @@ public interface WorkspaceGradleOperations {
      * <li>If the workspace project is open:
      * <ul>
      * <li>the Gradle nature is set</li>
+     * <li>the project name is updated</li>
      * <li>the Gradle settings file is written</li>
      * <li>the Gradle resource filter is set</li>
      * <li>the linked resources are set</li>
@@ -79,22 +77,20 @@ public interface WorkspaceGradleOperations {
      * </li>
      * <li>
      * If there is an Eclipse project at the location of the Gradle project, i.e. there is a .project file in that folder, then
-     * the {@link ExistingDescriptorHandler} decides whether to keep or overwrite that existing .project file. The project is imported
-     * into the workspace and then synchronized as specified above.
+     * the {@link NewProjectHandler} decides whether to import it. If the project is imported
+     * into the workspace, then it is synchronized as specified above. The {@link NewProjectHandler} decides whether to keep or overwrite the existing .project file.
      * </li>
-     * <li>If the there is no project in the workspace, nor an Eclipse project at the location of the Gradle build, the project is imported
-     * into the workspace and then synchronized as specified above.
+     * <li>If the there is no project in the workspace, nor an Eclipse project at the location of the Gradle build, then the {@link NewProjectHandler} decides whether to
+     * import it. If it is imported, it is synchronized as specified above.
      * </li>
      * </ol>
      *
-     * @param project                   the backing Gradle project
-     * @param gradleBuild               the Gradle build to which the Gradle project belongs
-     * @param rootRequestAttributes     the preferences used to query the Gradle build
-     * @param workingSets               the working set to assign the imported projects to
-     * @param existingDescriptorHandler whether to delete or keep existing .project files
-     * @param monitor                   the monitor to report the progress on
+     * @param project               the backing Gradle project
+     * @param gradleBuild           the Gradle build to which the Gradle project belongs
+     * @param newProjectHandler     what to do with projects that are not yet imported
+     * @param monitor               the monitor to report the progress on
      */
-    void synchronizeGradleProjectWithWorkspaceProject(OmniEclipseProject project, OmniEclipseGradleBuild gradleBuild, FixedRequestAttributes rootRequestAttributes, List<String> workingSets, ExistingDescriptorHandler existingDescriptorHandler, IProgressMonitor monitor);
+    void synchronizeGradleProjectWithWorkspaceProject(OmniEclipseProject project, GradleBuildInWorkspace gradleBuild, NewProjectHandler newProjectHandler, IProgressMonitor monitor);
 
     /**
      * Uncouples the given Eclipse workspace project from Gradle. The algorithm is as follows:

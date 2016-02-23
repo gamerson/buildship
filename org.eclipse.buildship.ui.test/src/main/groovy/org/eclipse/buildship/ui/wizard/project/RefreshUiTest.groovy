@@ -16,7 +16,7 @@ import org.eclipse.buildship.core.CorePlugin
 import org.eclipse.buildship.core.projectimport.ProjectImportConfiguration
 import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper
 import org.eclipse.buildship.core.util.progress.AsyncHandler
-import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectJob
+import org.eclipse.buildship.core.workspace.ImportGradleProjectJob
 import org.eclipse.buildship.ui.test.fixtures.LegacyEclipseSpockTestHelper
 import org.eclipse.buildship.ui.test.fixtures.SwtBotSpecification
 import org.eclipse.buildship.ui.wizard.project.RefreshUiTest.FileExistsCondition
@@ -53,13 +53,13 @@ class RefreshUiTest extends SwtBotSpecification {
         new File(projectFolder, 'build.gradle') << ''
         new File(projectFolder, 'settings.gradle') << ''
         newProjectImportJob(projectFolder).schedule()
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
         IProject project = CorePlugin.workspaceOperations().findProjectByName('project-name').get()
         new File(projectFolder, 'newFile') << ''
 
         when:
         performDefaultEclipseRefresh()
-        waitForJobsToFinish()
+        waitForSynchronizationJobsToFinish()
 
         then:
         bot.waitUntil(FileExistsCondition.create(project.getFile('newFile')), 5000, 500)
@@ -73,7 +73,7 @@ class RefreshUiTest extends SwtBotSpecification {
         configuration.projectDir = location
         configuration.applyWorkingSets = true
         configuration.workingSets = []
-        new SynchronizeGradleProjectJob(configuration.toFixedAttributes(), configuration.workingSets.getValue(), AsyncHandler.NO_OP)
+        new ImportGradleProjectJob(configuration.toFixedAttributes(), configuration.workingSets.getValue(), AsyncHandler.NO_OP)
     }
 
     private static def performDefaultEclipseRefresh() {

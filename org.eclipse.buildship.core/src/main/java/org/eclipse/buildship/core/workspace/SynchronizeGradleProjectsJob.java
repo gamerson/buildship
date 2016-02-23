@@ -11,108 +11,106 @@
 
 package org.eclipse.buildship.core.workspace;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-import com.google.common.collect.ImmutableList;
-import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
-import org.eclipse.buildship.core.AggregateException;
-import org.eclipse.buildship.core.CorePlugin;
-import org.eclipse.buildship.core.util.predicate.Predicates;
-import org.eclipse.buildship.core.util.progress.AsyncHandler;
-import org.eclipse.buildship.core.util.progress.ToolingApiCommand;
-import org.eclipse.buildship.core.util.progress.ToolingApiInvoker;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.jobs.IJobChangeEvent;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.runtime.jobs.JobChangeAdapter;
-
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CountDownLatch;
+
+import org.gradle.tooling.ProgressListener;
+
+import com.google.common.collect.ImmutableList;
+
+import com.gradleware.tooling.toolingmodel.OmniEclipseWorkspace;
+import com.gradleware.tooling.toolingmodel.repository.CompositeModelRepository;
+import com.gradleware.tooling.toolingmodel.repository.FetchStrategy;
+import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
+import com.gradleware.tooling.toolingmodel.repository.TransientRequestAttributes;
+
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.jobs.IJobManager;
+import org.eclipse.core.runtime.jobs.Job;
+
+import org.eclipse.buildship.core.CorePlugin;
+import org.eclipse.buildship.core.console.ProcessStreams;
+import org.eclipse.buildship.core.util.progress.DelegatingProgressListener;
+import org.eclipse.buildship.core.util.progress.ToolingApiWorkspaceJob;
+import org.eclipse.buildship.core.workspace.internal.DefaultGradleBuildInWorkspace;
 
 /**
- * Finds the Gradle root projects for the given set of Eclipse projects and then synchronizes
- * each Gradle root project with the Eclipse workspace via {@link SynchronizeGradleProjectJob}.
+ * Base class for jobs that synchronize a set of Gradle projects with their workspace counterparts.
  */
-public final class SynchronizeGradleProjectsJob extends Job {
+public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJob {
 
-    private final List<IProject> projects;
+    public static final String JOB_FAMILY = "Gradle_Synchronization_Jobs";
+    
+    private final FetchStrategy fetchStrategy;
 
-    public SynchronizeGradleProjectsJob(List<IProject> projects) {
-        super("Synchronize workspace projects with Gradle counterparts");
-        this.projects = ImmutableList.copyOf(projects);
+    public SynchronizeGradleProjectsJob(String description, boolean notifyUserOfBuildFailures, FetchStrategy fetchStrategy) {
+        super(description, notifyUserOfBuildFailures);
+        this.fetchStrategy = fetchStrategy;
     }
 
     @Override
-    protected IStatus run(final IProgressMonitor monitor) {
-        ToolingApiInvoker invoker = new ToolingApiInvoker(getName(), true);
-        return invoker.invoke(new ToolingApiCommand() {
-            @Override
-            public void run() throws Throwable {
-                scheduleSynchronizeJobs(monitor);
+    protected final void runToolingApiJobInWorkspace(IProgressMonitor monitor) {
+        monitor.beginTask("Synchronizing Gradle projects with workspace", 100);
+        beforeSynchronization(new SubProgressMonitor(monitor, 10));
+        IJobManager manager = Job.getJobManager();
+        IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+        manager.beginRule(workspaceRoot, monitor);
+        try {
+            Set<FixedRequestAttributes> requestAttributes = getBuildsToSynchronize();
+            if (requestAttributes.isEmpty()) {
+                return;
             }
-        }, monitor);
+            OmniEclipseWorkspace gradleWorkspace = forceReloadEclipseWorkspace(requestAttributes, new SubProgressMonitor(monitor, 40));
+            for (FixedRequestAttributes attributes : requestAttributes) {
+                GradleBuildInWorkspace gradleBuild = DefaultGradleBuildInWorkspace.from(gradleWorkspace, attributes);
+                CorePlugin.workspaceGradleOperations().synchronizeGradleBuildWithWorkspace(
+                    gradleBuild,
+                    getNewProjectHandler(gradleBuild),
+                    new SubProgressMonitor(monitor, 50)
+                );
+            }
+        } finally {
+            manager.endRule(workspaceRoot);
+        }
     }
 
-    private void scheduleSynchronizeJobs(final IProgressMonitor monitor) throws Throwable {
-        // find all the unique root projects for the given list of projects and
-        // reload the workspace project configuration for each of them (incl. their respective child projects)
-        Set<FixedRequestAttributes> rootRequestAttributes = getUniqueRootAttributes(this.projects);
-        monitor.beginTask("Synchronizing workspace projects with Gradle counterparts", rootRequestAttributes.size());
-        final List<Throwable> errors = new CopyOnWriteArrayList<Throwable>();
-        try {
-            final CountDownLatch latch = new CountDownLatch(rootRequestAttributes.size());
-            for (FixedRequestAttributes requestAttributes : rootRequestAttributes) {
-                Job synchronizeJob = new SynchronizeGradleProjectJob(requestAttributes, ImmutableList.<String>of(), ExistingDescriptorHandler.ALWAYS_KEEP, AsyncHandler.NO_OP);
-                synchronizeJob.addJobChangeListener(new JobChangeAdapter() {
+    /**
+     * Invoked before the synchronization is started.
+     */
+    protected void beforeSynchronization(IProgressMonitor progressMonitor) {
+    }
 
-                    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-                    @Override
-                    public void done(IJobChangeEvent event) {
-                        if (!event.getResult().isOK()) {
-                            Throwable error = event.getResult().getException();
-                            if (error != null) {
-                                errors.add(error);
-                            }
-                        }
-                        monitor.worked(1);
-                        latch.countDown();
-                    }
-                });
-                synchronizeJob.schedule();
-            }
-            latch.await();
+    /**
+     * The request attributes of the root projects to synchronize.
+     */
+    protected abstract Set<FixedRequestAttributes> getBuildsToSynchronize();
+
+    /**
+     * Determines what to do with not yet imported projects in the given build.
+     */
+    protected NewProjectHandler getNewProjectHandler(GradleBuildInWorkspace gradleBuild) {
+        return NewProjectHandler.IMPORT_AND_MERGE;
+    }
+
+    private OmniEclipseWorkspace forceReloadEclipseWorkspace(Set<FixedRequestAttributes> fixedRequestAttributes, IProgressMonitor monitor) {
+        monitor.beginTask("Loading workspace model", IProgressMonitor.UNKNOWN);
+        try {
+            ProcessStreams streams = CorePlugin.processStreamsProvider().getBackgroundJobProcessStreams();
+            List<ProgressListener> listeners = ImmutableList.<ProgressListener> of(new DelegatingProgressListener(monitor));
+            TransientRequestAttributes transientAttributes = new TransientRequestAttributes(false, streams.getOutput(), streams.getError(), streams.getInput(), listeners,
+                    ImmutableList.<org.gradle.tooling.events.ProgressListener> of(), getToken());
+            CompositeModelRepository repository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository(fixedRequestAttributes);
+            return repository.fetchEclipseWorkspace(transientAttributes, this.fetchStrategy);
         } finally {
             monitor.done();
-            rethrowExceptionsIfAny(errors);
-        }
-    }
-
-    private Set<FixedRequestAttributes> getUniqueRootAttributes(List<IProject> projects) {
-        return FluentIterable.from(projects).filter(Predicates.accessibleGradleProject()).transform(new Function<IProject, FixedRequestAttributes>() {
-
-            @Override
-            public FixedRequestAttributes apply(IProject project) {
-                return CorePlugin.projectConfigurationManager().readProjectConfiguration(project).getRequestAttributes();
-            }
-        }).toSet();
-    }
-
-    private void rethrowExceptionsIfAny(List<Throwable> errors) throws Throwable {
-        if (errors.size() == 1) {
-            throw errors.get(0);
-        } else if (errors.size() > 1) {
-            throw new AggregateException(errors);
         }
     }
 
     @Override
-    protected void canceling() {
-        // cancel all running SynchronizeGradleProjectJob instances
-        Job.getJobManager().cancel(SynchronizeGradleProjectJob.class.getName());
+    public boolean belongsTo(Object family) {
+        return JOB_FAMILY.equals(family);
     }
-
 }

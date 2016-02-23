@@ -27,6 +27,7 @@ import com.gradleware.tooling.toolingmodel.repository.Environment;
 import com.gradleware.tooling.toolingmodel.repository.ModelRepositoryProvider;
 import com.gradleware.tooling.toolingmodel.repository.ModelRepositoryProviderFactory;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Plugin;
 
@@ -42,10 +43,11 @@ import org.eclipse.buildship.core.notification.UserNotification;
 import org.eclipse.buildship.core.notification.internal.ConsoleUserNotification;
 import org.eclipse.buildship.core.util.gradle.PublishedGradleVersionsWrapper;
 import org.eclipse.buildship.core.util.logging.EclipseLogger;
+import org.eclipse.buildship.core.workspace.CompositeRefreshingProjectChangeListener;
 import org.eclipse.buildship.core.workspace.WorkspaceGradleOperations;
 import org.eclipse.buildship.core.workspace.WorkspaceOperations;
-import org.eclipse.buildship.core.workspace.internal.DefaultWorkspaceOperations;
 import org.eclipse.buildship.core.workspace.internal.DefaultWorkspaceGradleOperations;
+import org.eclipse.buildship.core.workspace.internal.DefaultWorkspaceOperations;
 
 /**
  * The plug-in runtime class for the Gradle integration plugin containing the non-UI elements.
@@ -95,16 +97,20 @@ public final class CorePlugin extends Plugin {
     private ServiceTracker listenerRegistryServiceTracker;
     private ServiceTracker userNotificationServiceTracker;
 
+    private CompositeRefreshingProjectChangeListener compositeRefreshingProjectChangeListener;
+
     @Override
     public void start(BundleContext bundleContext) throws Exception {
         super.start(bundleContext);
         plugin = this;
         ensureProxySettingsApplied();
         registerServices(bundleContext);
+        registerListeners();
     }
 
     @Override
     public void stop(BundleContext context) throws Exception {
+        unregisterListeners();
         toolingClient().stop(CleanUpStrategy.GRACEFULLY);
         unregisterServices();
         plugin = null;
@@ -229,6 +235,15 @@ public final class CorePlugin extends Plugin {
         this.toolingClientServiceTracker.close();
         this.publishedGradleVersionsServiceTracker.close();
         this.loggerServiceTracker.close();
+    }
+
+    private void registerListeners() {
+        this.compositeRefreshingProjectChangeListener = new CompositeRefreshingProjectChangeListener();
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(this.compositeRefreshingProjectChangeListener);
+    }
+
+    private void unregisterListeners() {
+        ResourcesPlugin.getWorkspace().removeResourceChangeListener(this.compositeRefreshingProjectChangeListener);
     }
 
     public static CorePlugin getInstance() {

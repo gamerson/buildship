@@ -12,7 +12,9 @@
 
 package org.eclipse.buildship.core.workspace;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.ProgressListener;
@@ -20,12 +22,13 @@ import org.gradle.tooling.ProgressListener;
 import com.google.common.base.Optional;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Sets;
 
-import com.gradleware.tooling.toolingmodel.OmniEclipseGradleBuild;
 import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
+import com.gradleware.tooling.toolingmodel.OmniEclipseWorkspace;
+import com.gradleware.tooling.toolingmodel.repository.CompositeModelRepository;
 import com.gradleware.tooling.toolingmodel.repository.FetchStrategy;
 import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
-import com.gradleware.tooling.toolingmodel.repository.SimpleModelRepository;
 import com.gradleware.tooling.toolingmodel.repository.TransientRequestAttributes;
 
 import org.eclipse.core.resources.IProject;
@@ -47,6 +50,10 @@ import org.eclipse.buildship.core.util.progress.ToolingApiWorkspaceJob;
 
 /**
  * Updates the Gradle classpath container of a Java project.
+
+/**
+ * Synchronizes a Java workspace project with its Gradle counterpart. In contrast to
+ * {@link RefreshGradleProjectsJob}, this works on individual Eclipse projects instead of Gradle builds.
  */
 public final class UpdateClasspathContainerJob extends ToolingApiWorkspaceJob {
 
@@ -88,21 +95,29 @@ public final class UpdateClasspathContainerJob extends ToolingApiWorkspaceJob {
         if (project.isAccessible() && GradleProjectNature.INSTANCE.isPresentOn(project)) {
             ProjectConfiguration configuration = CorePlugin.projectConfigurationManager().readProjectConfiguration(project);
             FixedRequestAttributes rootRequestAttributes = configuration.getRequestAttributes();
-            OmniEclipseGradleBuild gradleBuild = fetchEclipseGradleBuild(rootRequestAttributes, monitor, token);
-            Optional<OmniEclipseProject> gradleProject = gradleBuild.getRootEclipseProject().tryFind(Specs.eclipseProjectMatchesProjectDir(project.getLocation().toFile()));
+            OmniEclipseWorkspace gradleWorkspace = fetchEclipseGradleBuild(rootRequestAttributes, monitor, token);
+            Optional<OmniEclipseProject> gradleProject = gradleWorkspace.tryFind(Specs.eclipseProjectMatchesProjectDirectory(project.getLocation().toFile()));
             if (gradleProject.isPresent()) {
                 CorePlugin.workspaceGradleOperations().synchronizeClasspathContainer(javaProject, gradleProject.get(), monitor);
             }
         }
     }
 
-    private OmniEclipseGradleBuild fetchEclipseGradleBuild(FixedRequestAttributes fixedRequestAttributes, IProgressMonitor monitor, CancellationToken token) {
+    private OmniEclipseWorkspace fetchEclipseGradleBuild(FixedRequestAttributes fixedRequestAttributes, IProgressMonitor monitor, CancellationToken token) {
         ProcessStreams streams = CorePlugin.processStreamsProvider().getBackgroundJobProcessStreams();
         List<ProgressListener> progressListeners = ImmutableList.<ProgressListener>of(new DelegatingProgressListener(monitor));
         TransientRequestAttributes transientAttributes = new TransientRequestAttributes(false, streams.getOutput(), streams.getError(), null, progressListeners,
                 ImmutableList.<org.gradle.tooling.events.ProgressListener>of(), token);
-        SimpleModelRepository repository = CorePlugin.modelRepositoryProvider().getModelRepository(fixedRequestAttributes);
-        return repository.fetchEclipseGradleBuild(transientAttributes, this.fetchStrategy);
+        Set<FixedRequestAttributes> allRequestAttributes = Sets.newHashSet();
+        List<IProject> allProjects = Arrays.asList(ResourcesPlugin.getWorkspace().getRoot().getProjects());
+        allRequestAttributes.addAll(getUniqueRootProjects(allProjects));
+        allRequestAttributes.add(fixedRequestAttributes);
+        CompositeModelRepository repository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository(allRequestAttributes);
+        return repository.fetchEclipseWorkspace(transientAttributes, this.fetchStrategy);
     }
 
+    @Override
+    public boolean belongsTo(Object family) {
+        return SynchronizeGradleProjectsJob.JOB_FAMILY.equals(family);
+    }
 }

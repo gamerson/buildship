@@ -9,8 +9,9 @@ import org.eclipse.buildship.core.test.fixtures.EclipseProjects
 import org.eclipse.buildship.core.test.fixtures.FileStructure
 import org.eclipse.buildship.core.test.fixtures.GradleModel
 import org.eclipse.buildship.core.test.fixtures.LegacyEclipseSpockTestHelper
-import org.eclipse.buildship.core.workspace.ExistingDescriptorHandler
 import org.eclipse.buildship.core.workspace.GradleClasspathContainer
+import org.eclipse.buildship.core.workspace.NewProjectHandler;
+
 import org.eclipse.core.resources.IProject
 import org.eclipse.core.resources.IResourceFilterDescription
 import org.eclipse.core.runtime.IProgressMonitor
@@ -58,7 +59,7 @@ class ImportingProjectWithExistingDescriptorTest extends CoupledProjectSynchroni
         GradleModel gradleModel = loadGradleModel('sample-project')
 
         when:
-        executeSynchronizeGradleProjectWithWorkspaceProjectAndWait(gradleModel, ExistingDescriptorHandler.ALWAYS_OVERWRITE)
+        executeSynchronizeGradleProjectWithWorkspaceProjectAndWait(gradleModel, NewProjectHandler.IMPORT_AND_OVERWRITE)
 
         then:
         project.hasNature(GradleProjectNature.ID)
@@ -71,7 +72,7 @@ class ImportingProjectWithExistingDescriptorTest extends CoupledProjectSynchroni
         thrown JavaModelException
     }
 
-    def "All subprojects with existing .project files are handled by the ExistingDescriptorHandler"() {
+    def "All non-imported projects are handled by the NewProjectHandler"() {
         setup:
         EclipseProjects.newProject('subproject-a', folder('sample-project/subproject-a'))
         EclipseProjects.newProject('subproject-b', folder('sample-project/subproject-b'))
@@ -82,14 +83,16 @@ class ImportingProjectWithExistingDescriptorTest extends CoupledProjectSynchroni
             file 'sample-project/build.gradle'
             file 'sample-project/settings.gradle', "include 'subproject-a', 'subproject-b'"
         }
-        ExistingDescriptorHandler handler = Mock(ExistingDescriptorHandler)
+        NewProjectHandler handler = Mock(NewProjectHandler)
 
         when:
         GradleModel gradleModel = loadGradleModel('sample-project')
         executeSynchronizeGradleProjectWithWorkspaceProjectAndWait(gradleModel, handler)
 
         then:
-        2 * handler.shouldOverwriteDescriptor(_)
+        3 * handler.shouldImport(_) >> true
+        2 * handler.shouldOverwriteDescriptor(_, _) >> true
+        3 * handler.afterImport(_, _)
     }
 
     @Override

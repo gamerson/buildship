@@ -12,6 +12,7 @@
 package org.eclipse.buildship.ui.view.task;
 
 import java.util.List;
+import java.util.Set;
 
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.GradleConnector;
@@ -22,18 +23,18 @@ import com.google.common.base.Preconditions;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.common.util.concurrent.FutureCallback;
 
-import com.gradleware.tooling.toolingmodel.OmniEclipseGradleBuild;
 import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
+import com.gradleware.tooling.toolingmodel.OmniEclipseWorkspace;
 import com.gradleware.tooling.toolingmodel.OmniGradleProject;
 import com.gradleware.tooling.toolingmodel.OmniProjectTask;
 import com.gradleware.tooling.toolingmodel.OmniTaskSelector;
-import com.gradleware.tooling.toolingmodel.Path;
+import com.gradleware.tooling.toolingmodel.repository.CompositeModelRepository;
 import com.gradleware.tooling.toolingmodel.repository.FetchStrategy;
 import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
 import com.gradleware.tooling.toolingmodel.repository.ModelRepositoryProvider;
-import com.gradleware.tooling.toolingmodel.repository.SimpleModelRepository;
 import com.gradleware.tooling.toolingmodel.repository.TransientRequestAttributes;
 
 import org.eclipse.core.resources.IProject;
@@ -43,8 +44,7 @@ import org.eclipse.ui.PlatformUI;
 
 import org.eclipse.buildship.core.configuration.ProjectConfiguration;
 import org.eclipse.buildship.core.console.ProcessStreamsProvider;
-import org.eclipse.buildship.core.gradle.LoadEclipseGradleBuildsJob;
-import org.eclipse.buildship.core.gradle.Specs;
+import org.eclipse.buildship.core.gradle.LoadEclipseWorkspaceJob;
 import org.eclipse.buildship.core.workspace.WorkspaceOperations;
 
 /**
@@ -82,8 +82,8 @@ public final class TaskViewContentProvider implements ITreeContentProvider {
         // the only way to set the input is
         // through TaskView#setInput(TaskViewContent)
         TaskViewContent content = TaskViewContent.class.cast(newInput);
-        LoadEclipseGradleBuildsJob loadEclipseGradleBuildsJob = new LoadEclipseGradleBuildsJob(this.modelRepositoryProvider, this.processStreamsProvider,
-                content.getModelFetchStrategy(), content.getRootProjectConfigurations(), new LoadEclipseGradleBuildPostProcess(this.taskView));
+        LoadEclipseWorkspaceJob loadEclipseGradleBuildsJob = new LoadEclipseWorkspaceJob(this.modelRepositoryProvider, this.processStreamsProvider,
+                content.getModelFetchStrategy(), content.getRootProjectConfigurations(), new LoadEclipseWorkspacePostProcess(this.taskView));
         loadEclipseGradleBuildsJob.schedule();
     }
 
@@ -92,43 +92,46 @@ public final class TaskViewContentProvider implements ITreeContentProvider {
         ImmutableList.Builder<Object> result = ImmutableList.builder();
         if (input instanceof TaskViewContent) {
             TaskViewContent content = (TaskViewContent) input;
-            for (ProjectConfiguration projectConfiguration : content.getRootProjectConfigurations()) {
-                result.addAll(createTopLevelProjectNodes(projectConfiguration));
-            }
+            result.addAll(createTopLevelProjectNodes(content.getRootProjectConfigurations()));
         }
         return result.build().toArray();
     }
 
-    private List<ProjectNode> createTopLevelProjectNodes(ProjectConfiguration projectConfiguration) {
-        OmniEclipseGradleBuild gradleBuild = fetchCachedEclipseGradleBuild(projectConfiguration.getRequestAttributes());
-        if (gradleBuild == null) {
+    private List<ProjectNode> createTopLevelProjectNodes(Set<ProjectConfiguration> projectConfigurations) {
+        Set<FixedRequestAttributes> requestAttributes = Sets.newHashSet();
+        for (ProjectConfiguration projectConfiguration : projectConfigurations) {
+            requestAttributes.add(projectConfiguration.getRequestAttributes());
+        }
+        if (requestAttributes.isEmpty()) {
+            return ImmutableList.of();
+        }
+        OmniEclipseWorkspace eclipseWorkspace = fetchCachedEclipseWorkspace(requestAttributes);
+        if (eclipseWorkspace == null) {
             // no Gradle projects are cached yet, meaning the async job
             // to load the projects is still running, thus nothing to show
             return ImmutableList.of();
         } else {
-            // flatten the tree of Gradle projects to a list, similar
-            // to how Eclipse projects look in the Eclipse Project explorer
             List<ProjectNode> allProjectNodes = Lists.newArrayList();
-            collectProjectNodesRecursively(gradleBuild.getRootEclipseProject(), gradleBuild.getRootEclipseProject().getGradleProject(), null, allProjectNodes);
+            for (OmniEclipseProject eclipseProject : eclipseWorkspace.getOpenEclipseProjects()) {
+                if (eclipseProject.getParent() == null) {
+                    collectProjectNodesRecursively(eclipseProject, null, allProjectNodes);
+                }
+            }
             return allProjectNodes;
         }
     }
 
-    private OmniEclipseGradleBuild fetchCachedEclipseGradleBuild(FixedRequestAttributes fixedRequestAttributes) {
+    private OmniEclipseWorkspace fetchCachedEclipseWorkspace(Set<FixedRequestAttributes> fixedRequestAttributes) {
         List<ProgressListener> noProgressListeners = ImmutableList.of();
         List<org.gradle.tooling.events.ProgressListener> noTypedProgressListeners = ImmutableList.of();
         CancellationToken cancellationToken = GradleConnector.newCancellationTokenSource().token();
         TransientRequestAttributes transientAttributes = new TransientRequestAttributes(false, null, null, null, noProgressListeners, noTypedProgressListeners, cancellationToken);
-        SimpleModelRepository repository = this.modelRepositoryProvider.getModelRepository(fixedRequestAttributes);
-        return repository.fetchEclipseGradleBuild(transientAttributes, FetchStrategy.FROM_CACHE_ONLY);
+        CompositeModelRepository repository = this.modelRepositoryProvider.getCompositeModelRepository(fixedRequestAttributes);
+        return repository.fetchEclipseWorkspace(transientAttributes, FetchStrategy.FROM_CACHE_ONLY);
     }
 
-    private void collectProjectNodesRecursively(OmniEclipseProject eclipseProject, OmniGradleProject gradleRootProject, ProjectNode parentProjectNode,
-                                                List<ProjectNode> allProjectNodes) {
-        // find the Gradle project corresponding to the Eclipse project
-        // (there will always be exactly one match)
-        Path gradleProjectPath = eclipseProject.getPath();
-        OmniGradleProject gradleProject = gradleRootProject.tryFind(Specs.gradleProjectMatchesProjectPath(gradleProjectPath)).get();
+    private void collectProjectNodesRecursively(OmniEclipseProject eclipseProject, ProjectNode parentProjectNode, List<ProjectNode> allProjectNodes) {
+        OmniGradleProject gradleProject = eclipseProject.getGradleProject();
 
         // find the corresponding Eclipse project in the workspace
         // (find by location rather than by name since the Eclipse project name does not always correspond to the Gradle project name)
@@ -138,7 +141,7 @@ public final class TaskViewContentProvider implements ITreeContentProvider {
         ProjectNode projectNode = new ProjectNode(parentProjectNode, eclipseProject, gradleProject, workspaceProject);
         allProjectNodes.add(projectNode);
         for (OmniEclipseProject childProject : eclipseProject.getChildren()) {
-            collectProjectNodesRecursively(childProject, gradleRootProject, projectNode, allProjectNodes);
+            collectProjectNodesRecursively(childProject, projectNode, allProjectNodes);
         }
     }
 
@@ -181,16 +184,16 @@ public final class TaskViewContentProvider implements ITreeContentProvider {
     /**
      * Refreshes the task view when invoked, regardless of whether the underlying operation was successful or not.
      */
-    private static final class LoadEclipseGradleBuildPostProcess implements FutureCallback<OmniEclipseGradleBuild> {
+    private static final class LoadEclipseWorkspacePostProcess implements FutureCallback<OmniEclipseWorkspace> {
 
         private final TaskView taskView;
 
-        private LoadEclipseGradleBuildPostProcess(TaskView taskView) {
+        private LoadEclipseWorkspacePostProcess(TaskView taskView) {
             this.taskView = Preconditions.checkNotNull(taskView);
         }
 
          @Override
-         public void onSuccess(OmniEclipseGradleBuild omniEclipseGradleBuild) {
+         public void onSuccess(OmniEclipseWorkspace omniEclipseGradleBuild) {
              refreshTaskView();
          }
 
@@ -205,8 +208,7 @@ public final class TaskViewContentProvider implements ITreeContentProvider {
 
                 @Override
                 public void run() {
-                    // todo (etst) only refresh the node that corresponds to the loaded Gradle build
-                    LoadEclipseGradleBuildPostProcess.this.taskView.refresh();
+                    LoadEclipseWorkspacePostProcess.this.taskView.refresh();
                 }
             });
         }

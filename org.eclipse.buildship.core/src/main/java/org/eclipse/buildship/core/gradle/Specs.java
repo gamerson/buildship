@@ -33,40 +33,45 @@ public final class Specs {
      * Returns a spec that matches if the the project path of a {@code OmniEclipseProject} instance
      * matches the given project path.
      *
-     * @param projectPath the project path to match
+     * @param projectDir the project path to match
      * @return the spec
      */
-    public static Spec<OmniEclipseProject> eclipseProjectMatchesProjectPath(final Path projectPath) {
-        return new Spec<OmniEclipseProject>() {
-
-            @Override
-            public boolean isSatisfiedBy(OmniEclipseProject candidate) {
-                return candidate.getPath().equals(projectPath);
-            }
-        };
-    }
-
-    /**
-     * Returns a spec that matches if the the project directory of a {@code OmniEclipseProject} instance
-     * matches the given project directory.
-     *
-     * @param projectDir the project directory to match
-     * @return the spec
-     */
-    public static Spec<OmniEclipseProject> eclipseProjectMatchesProjectDir(final File projectDir) {
+    public static Spec<OmniEclipseProject> eclipseProjectMatchesProjectDirectory(final File projectDir) {
         final File canonicalProjectDir;
         try {
             canonicalProjectDir = projectDir.getCanonicalFile();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-
         return new Spec<OmniEclipseProject>() {
 
             @Override
             public boolean isSatisfiedBy(OmniEclipseProject candidate) {
                 try {
                     return candidate.getProjectDirectory().getCanonicalFile().equals(canonicalProjectDir);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        };
+    }
+
+    /**
+     * Returns a spec that matches if the project's root project directory is equal to the given directory.
+     */
+    public static Spec<OmniEclipseProject> eclipseProjectIsSubProjectOf(final File rootProjectDir) {
+        final File canonicalRootProjectDir;
+        try {
+            canonicalRootProjectDir = rootProjectDir.getCanonicalFile();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return new Spec<OmniEclipseProject>() {
+
+            @Override
+            public boolean isSatisfiedBy(OmniEclipseProject candidate) {
+                try {
+                    return candidate.getRoot().getProjectDirectory().getCanonicalFile().equals(canonicalRootProjectDir);
                 } catch (IOException e) {
                     throw new UncheckedIOException(e);
                 }
