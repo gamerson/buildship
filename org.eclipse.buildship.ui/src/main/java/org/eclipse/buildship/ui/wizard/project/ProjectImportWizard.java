@@ -176,16 +176,16 @@ public final class ProjectImportWizard extends AbstractProjectWizard implements 
             }
             return this.overwriteDescriptors;
         }
-        
+
         @Override
         public boolean shouldImport(OmniEclipseProject projectModel) {
             return true;
         }
-        
+
         @Override
         public void afterImport(IProject project, OmniEclipseProject projectModel) {
         }
-        
+
         private void askUserWhetherToDeleteDescriptor() {
             PlatformUI.getWorkbench().getDisplay().syncExec(new Runnable() {
                 @Override

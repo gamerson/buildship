@@ -13,12 +13,11 @@
 
 package org.eclipse.buildship.ui.workspace;
 
+import java.util.List;
+
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
-import org.eclipse.buildship.core.util.collections.AdapterFunction;
-import org.eclipse.buildship.core.workspace.RefreshGradleProjectsJob;
-import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob;
-import org.eclipse.buildship.ui.util.predicate.Predicates;
+
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.Platform;
@@ -26,7 +25,9 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import java.util.List;
+import org.eclipse.buildship.core.util.collections.AdapterFunction;
+import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob;
+import org.eclipse.buildship.ui.util.predicate.Predicates;
 
 /**
  * Collects all selected, Gradle-aware {@link IProject} instances and schedules a
@@ -42,7 +43,7 @@ public final class ProjectSynchronizer {
             return;
         }
 
-        SynchronizeGradleProjectsJob synchronizeJob = new RefreshGradleProjectsJob();
+        SynchronizeGradleProjectsJob synchronizeJob = SynchronizeGradleProjectsJob.newForceRefreshWorkspaceJob();
         synchronizeJob.schedule();
     }
 

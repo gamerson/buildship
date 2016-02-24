@@ -12,7 +12,6 @@
 
 package org.eclipse.buildship.core.workspace;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -109,8 +108,7 @@ public final class UpdateClasspathContainerJob extends ToolingApiWorkspaceJob {
         TransientRequestAttributes transientAttributes = new TransientRequestAttributes(false, streams.getOutput(), streams.getError(), null, progressListeners,
                 ImmutableList.<org.gradle.tooling.events.ProgressListener>of(), token);
         Set<FixedRequestAttributes> allRequestAttributes = Sets.newHashSet();
-        List<IProject> allProjects = Arrays.asList(ResourcesPlugin.getWorkspace().getRoot().getProjects());
-        allRequestAttributes.addAll(getUniqueRootProjects(allProjects));
+        allRequestAttributes.addAll(SynchronizeGradleProjectsJob.getBuildsInComposite());
         allRequestAttributes.add(fixedRequestAttributes);
         CompositeModelRepository repository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository(allRequestAttributes);
         return repository.fetchEclipseWorkspace(transientAttributes, this.fetchStrategy);

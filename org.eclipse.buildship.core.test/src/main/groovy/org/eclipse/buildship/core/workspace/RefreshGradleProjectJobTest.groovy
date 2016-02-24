@@ -22,7 +22,7 @@ class RefreshGradleProjectJobTest extends ProjectImportSpecification {
         """
 
         when:
-        new RefreshGradleProjectsJob().schedule()
+        SynchronizeGradleProjectsJob.newForceRefreshWorkspaceJob().schedule()
         waitForGradleJobsToFinish()
 
         then:
@@ -36,7 +36,7 @@ class RefreshGradleProjectJobTest extends ProjectImportSpecification {
         """
 
         when:
-        new RefreshGradleProjectsJob().schedule()
+        SynchronizeGradleProjectsJob.newForceRefreshWorkspaceJob().schedule()
         waitForGradleJobsToFinish()
 
         then:
@@ -58,7 +58,7 @@ class RefreshGradleProjectJobTest extends ProjectImportSpecification {
         folder('sample', 'moduleC', 'src', 'main', 'java')
 
         when:
-        new RefreshGradleProjectsJob().schedule()
+        SynchronizeGradleProjectsJob.newForceRefreshWorkspaceJob().schedule()
         waitForGradleJobsToFinish()
 
         then:
@@ -92,7 +92,7 @@ class RefreshGradleProjectJobTest extends ProjectImportSpecification {
         waitForGradleJobsToFinish()
 
         when:
-        new RefreshGradleProjectsJob().schedule()
+        SynchronizeGradleProjectsJob.newForceRefreshWorkspaceJob().schedule()
         waitForGradleJobsToFinish()
 
         then:

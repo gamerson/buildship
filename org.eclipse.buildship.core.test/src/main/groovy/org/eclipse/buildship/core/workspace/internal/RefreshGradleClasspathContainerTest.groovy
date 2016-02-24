@@ -3,7 +3,6 @@ package org.eclipse.buildship.core.workspace.internal
 import org.eclipse.buildship.core.CorePlugin
 import org.eclipse.buildship.core.test.fixtures.ProjectImportSpecification
 import org.eclipse.buildship.core.workspace.GradleClasspathContainer
-import org.eclipse.buildship.core.workspace.RefreshGradleProjectsJob
 import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob
 
 import org.eclipse.core.runtime.Path
@@ -115,7 +114,7 @@ class RefreshGradleClasspathContainerTest extends ProjectImportSpecification {
 
     private static def executeSynchronizeGradleProjectsJobAndWait(IJavaProject... javaProjects) {
         def projects = javaProjects.collect { it.project }
-        SynchronizeGradleProjectsJob synchronizeJob = new RefreshGradleProjectsJob()
+        SynchronizeGradleProjectsJob synchronizeJob = SynchronizeGradleProjectsJob.newForceRefreshWorkspaceJob()
         synchronizeJob.schedule()
         synchronizeJob.join()
         waitForGradleJobsToFinish()

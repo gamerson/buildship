@@ -11,26 +11,16 @@
 
 package org.eclipse.buildship.core.util.progress;
 
-import java.util.List;
-import java.util.Set;
-
 import org.gradle.tooling.CancellationToken;
 import org.gradle.tooling.CancellationTokenSource;
 import org.gradle.tooling.GradleConnector;
 
-import com.google.common.base.Function;
-import com.google.common.collect.FluentIterable;
-
-import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
-
-import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.WorkspaceJob;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 
 import org.eclipse.buildship.core.CorePlugin;
-import org.eclipse.buildship.core.util.predicate.Predicates;
 
 /**
  * Base class for cancellable workspace jobs that invoke the Gradle Tooling API.
@@ -104,20 +94,6 @@ public abstract class ToolingApiWorkspaceJob extends WorkspaceJob {
      * @throws Exception thrown when an error happens during the execution
      */
     protected abstract void runToolingApiJobInWorkspace(IProgressMonitor monitor) throws Exception;
-
-
-    /**
-     * Returns the request attributes of the root projects that the given eclipse projects belong to.
-     */
-    protected final Set<FixedRequestAttributes> getUniqueRootProjects(List<IProject> projects) {
-        return FluentIterable.from(projects).filter(Predicates.accessibleGradleProject()).transform(new Function<IProject, FixedRequestAttributes>() {
-
-            @Override
-            public FixedRequestAttributes apply(IProject project) {
-                return CorePlugin.projectConfigurationManager().readProjectConfiguration(project).getRequestAttributes();
-            }
-        }).toSet();
-    }
 
     @Override
     protected void canceling() {

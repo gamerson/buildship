@@ -19,7 +19,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableList;
 
 import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
-import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
 import com.gradleware.tooling.toolingutils.binding.Property;
 import com.gradleware.tooling.toolingutils.binding.ValidationListener;
 import com.gradleware.tooling.toolingutils.binding.Validator;
@@ -35,7 +34,6 @@ import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.IWorkingSetManager;
 import org.eclipse.ui.PlatformUI;
 
-import org.eclipse.buildship.core.gradle.Specs;
 import org.eclipse.buildship.core.projectimport.ProjectImportConfiguration;
 import org.eclipse.buildship.core.util.binding.Validators;
 import org.eclipse.buildship.core.util.collections.CollectionsUtils;
@@ -45,8 +43,8 @@ import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper;
 import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper.DistributionType;
 import org.eclipse.buildship.core.util.progress.AsyncHandler;
 import org.eclipse.buildship.core.workspace.BuildSpecificNewProjectHandler;
-import org.eclipse.buildship.core.workspace.ImportGradleProjectJob;
 import org.eclipse.buildship.core.workspace.NewProjectHandler;
+import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob;
 import org.eclipse.buildship.ui.util.workbench.WorkbenchUtils;
 import org.eclipse.buildship.ui.util.workbench.WorkingSetUtils;
 import org.eclipse.buildship.ui.view.execution.ExecutionsView;
@@ -179,9 +177,7 @@ public class ProjectImportWizardController {
     }
 
     public boolean performImportProject(AsyncHandler initializer, NewProjectHandler newProjectHandler) {
-        FixedRequestAttributes rootRequestAttributes = this.configuration.toFixedAttributes();
-        List<String> workingSets = this.configuration.getApplyWorkingSets().getValue() ? ImmutableList.copyOf(this.configuration.getWorkingSets().getValue()) : ImmutableList.<String>of();
-        ImportGradleProjectJob synchronizeJob = new ImportGradleProjectJob(rootRequestAttributes, new ImportedBuildSpecificNewProjectHandler(newProjectHandler, workingSets, rootRequestAttributes.getProjectDir()), initializer);
+        SynchronizeGradleProjectsJob synchronizeJob = SynchronizeGradleProjectsJob.newImportProjectJob(this.configuration.toFixedAttributes(), new ImportedBuildSpecificNewProjectHandler(newProjectHandler, this.configuration), initializer);
         synchronizeJob.addJobChangeListener(new JobChangeAdapter() {
 
             @Override
@@ -203,13 +199,11 @@ public class ProjectImportWizardController {
 
         private final NewProjectHandler delegateForImportedBuild;
         private final List<String> workingSetNames;
-        private final File rootProjectDir;
 
-        public ImportedBuildSpecificNewProjectHandler(NewProjectHandler delegateForImportedBuild, List<String> workingSetNames, File rootProjectDir) {
-            super(rootProjectDir, IMPORT_AND_MERGE);
+        public ImportedBuildSpecificNewProjectHandler(NewProjectHandler delegateForImportedBuild, ProjectImportConfiguration configuration) {
+            super(configuration.getProjectDir().getValue(), IMPORT_AND_MERGE);
             this.delegateForImportedBuild = delegateForImportedBuild;
-            this.workingSetNames = workingSetNames;
-            this.rootProjectDir = rootProjectDir;
+            this.workingSetNames = configuration.getApplyWorkingSets().getValue() ? ImmutableList.copyOf(configuration.getWorkingSets().getValue()) : ImmutableList.<String>of();;
         }
 
         @Override
@@ -225,12 +219,9 @@ public class ProjectImportWizardController {
         @Override
         protected void afterImportOfProjectInBuild(IProject project, OmniEclipseProject projectModel) {
             this.delegateForImportedBuild.afterImport(project, projectModel);
-            boolean isPartOfImportedBuild = Specs.eclipseProjectIsSubProjectOf(this.rootProjectDir).isSatisfiedBy(projectModel);
-            if (isPartOfImportedBuild) {
-                IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
-                IWorkingSet[] workingSets = WorkingSetUtils.toWorkingSets(this.workingSetNames);
-                workingSetManager.addToWorkingSets(project, workingSets);
-            }
+            IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
+            IWorkingSet[] workingSets = WorkingSetUtils.toWorkingSets(this.workingSetNames);
+            workingSetManager.addToWorkingSets(project, workingSets);
         }
 
     }

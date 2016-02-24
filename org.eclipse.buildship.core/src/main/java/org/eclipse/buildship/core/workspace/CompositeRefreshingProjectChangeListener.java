@@ -13,8 +13,6 @@ package org.eclipse.buildship.core.workspace;
 
 import java.util.Set;
 
-import com.gradleware.tooling.toolingmodel.repository.FetchStrategy;
-
 import org.eclipse.core.resources.IProject;
 
 /**
@@ -34,7 +32,7 @@ public class CompositeRefreshingProjectChangeListener extends WorkspaceProjectCh
 
     @Override
     protected void notifyAboutProjectRemovals(Set<IProject> deletedProjects) {
-        new RefreshGradleProjectsJob(FetchStrategy.LOAD_IF_NOT_CACHED, NewProjectHandler.DONT_IMPORT).schedule();
+        SynchronizeGradleProjectsJob.newRefreshWorkspaceJob().schedule();
     }
 
 }

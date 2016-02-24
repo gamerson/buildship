@@ -16,7 +16,8 @@ import org.eclipse.buildship.core.CorePlugin
 import org.eclipse.buildship.core.projectimport.ProjectImportConfiguration
 import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper
 import org.eclipse.buildship.core.util.progress.AsyncHandler
-import org.eclipse.buildship.core.workspace.ImportGradleProjectJob
+import org.eclipse.buildship.core.workspace.NewProjectHandler;
+import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob;
 import org.eclipse.buildship.ui.test.fixtures.LegacyEclipseSpockTestHelper
 import org.eclipse.buildship.ui.test.fixtures.SwtBotSpecification
 import org.eclipse.buildship.ui.wizard.project.RefreshUiTest.FileExistsCondition
@@ -73,7 +74,7 @@ class RefreshUiTest extends SwtBotSpecification {
         configuration.projectDir = location
         configuration.applyWorkingSets = true
         configuration.workingSets = []
-        new ImportGradleProjectJob(configuration.toFixedAttributes(), configuration.workingSets.getValue(), AsyncHandler.NO_OP)
+        SynchronizeGradleProjectsJob.newImportProjectJob(configuration.toFixedAttributes(), NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP)
     }
 
     private static def performDefaultEclipseRefresh() {
