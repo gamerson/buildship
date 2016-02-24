@@ -44,7 +44,7 @@ import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper.Distribu
 import org.eclipse.buildship.core.util.progress.AsyncHandler;
 import org.eclipse.buildship.core.workspace.BuildSpecificNewProjectHandler;
 import org.eclipse.buildship.core.workspace.NewProjectHandler;
-import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob;
+import org.eclipse.buildship.core.workspace.SynchronizeCompositeJob;
 import org.eclipse.buildship.ui.util.workbench.WorkbenchUtils;
 import org.eclipse.buildship.ui.util.workbench.WorkingSetUtils;
 import org.eclipse.buildship.ui.view.execution.ExecutionsView;
@@ -177,7 +177,7 @@ public class ProjectImportWizardController {
     }
 
     public boolean performImportProject(AsyncHandler initializer, NewProjectHandler newProjectHandler) {
-        SynchronizeGradleProjectsJob synchronizeJob = SynchronizeGradleProjectsJob.newImportProjectJob(this.configuration.toFixedAttributes(), new ImportedBuildSpecificNewProjectHandler(newProjectHandler, this.configuration), initializer);
+        SynchronizeCompositeJob synchronizeJob = SynchronizeCompositeJob.newImportProjectJob(this.configuration.toFixedAttributes(), new ImportedBuildSpecificNewProjectHandler(newProjectHandler, this.configuration), initializer);
         synchronizeJob.addJobChangeListener(new JobChangeAdapter() {
 
             @Override

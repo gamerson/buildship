@@ -12,7 +12,7 @@
 package org.eclipse.buildship.core.test.fixtures
 
 import org.eclipse.buildship.core.CorePlugin
-import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob
+import org.eclipse.buildship.core.workspace.SynchronizeCompositeJob
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.jobs.Job

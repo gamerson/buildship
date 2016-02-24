@@ -25,7 +25,7 @@ import org.eclipse.buildship.core.projectimport.ProjectImportConfiguration
 import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper
 import org.eclipse.buildship.core.util.progress.AsyncHandler
 import org.eclipse.buildship.core.workspace.NewProjectHandler
-import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob;
+import org.eclipse.buildship.core.workspace.SynchronizeCompositeJob;
 import org.eclipse.buildship.core.workspace.WorkspaceOperations
 import org.eclipse.core.resources.IProject
 import org.eclipse.core.runtime.NullProgressMonitor
@@ -108,7 +108,7 @@ class ProjectConfigurationManagerTest extends Specification {
         importConfigurationOne.applyWorkingSets = true
         importConfigurationOne.workingSets = []
 
-        SynchronizeGradleProjectsJob.newImportProjectJob(importConfigurationOne.toFixedAttributes(), NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
+        SynchronizeCompositeJob.newImportProjectJob(importConfigurationOne.toFixedAttributes(), NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
 
         when:
         Set<ProjectConfiguration> rootProjectConfigurations = configurationManager.getRootProjectConfigurations()
@@ -177,8 +177,8 @@ class ProjectConfigurationManagerTest extends Specification {
         importConfigurationTwo.applyWorkingSets = true
         importConfigurationTwo.workingSets = []
 
-        SynchronizeGradleProjectsJob.newImportProjectJob(importConfigurationOne.toFixedAttributes(), NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
-        SynchronizeGradleProjectsJob.newImportProjectJob(importConfigurationTwo.toFixedAttributes(), NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
+        SynchronizeCompositeJob.newImportProjectJob(importConfigurationOne.toFixedAttributes(), NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
+        SynchronizeCompositeJob.newImportProjectJob(importConfigurationTwo.toFixedAttributes(), NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP).runToolingApiJobInWorkspace(new NullProgressMonitor())
 
         when:
         Set<ProjectConfiguration> rootProjectConfigurations = configurationManager.getRootProjectConfigurations()

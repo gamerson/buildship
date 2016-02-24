@@ -26,14 +26,14 @@ import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import org.eclipse.buildship.core.util.collections.AdapterFunction;
-import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob;
+import org.eclipse.buildship.core.workspace.SynchronizeCompositeJob;
 import org.eclipse.buildship.ui.util.predicate.Predicates;
 
 /**
  * Collects all selected, Gradle-aware {@link IProject} instances and schedules a
- * {@link SynchronizeGradleProjectsJob} to refresh these projects.
+ * {@link SynchronizeCompositeJob} to refresh these projects.
  *
- * @see SynchronizeGradleProjectsJob
+ * @see SynchronizeCompositeJob
  */
 public final class ProjectSynchronizer {
 
@@ -43,7 +43,7 @@ public final class ProjectSynchronizer {
             return;
         }
 
-        SynchronizeGradleProjectsJob synchronizeJob = SynchronizeGradleProjectsJob.newForceRefreshWorkspaceJob();
+        SynchronizeCompositeJob synchronizeJob = SynchronizeCompositeJob.newForceRefreshWorkspaceJob();
         synchronizeJob.schedule();
     }
 

@@ -32,7 +32,7 @@ public class CompositeRefreshingProjectChangeListener extends WorkspaceProjectCh
 
     @Override
     protected void notifyAboutProjectRemovals(Set<IProject> deletedProjects) {
-        SynchronizeGradleProjectsJob.newRefreshWorkspaceJob().schedule();
+        SynchronizeCompositeJob.newRefreshWorkspaceJob().schedule();
     }
 
 }

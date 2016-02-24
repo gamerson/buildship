@@ -28,7 +28,7 @@ import org.eclipse.swtbot.swt.finder.widgets.TimeoutException;
 import org.eclipse.ui.PlatformUI
 
 import org.eclipse.buildship.core.CorePlugin
-import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob;
+import org.eclipse.buildship.core.workspace.SynchronizeCompositeJob;
 import org.eclipse.buildship.ui.UiPlugin
 
 abstract class SwtBotSpecification extends Specification {

@@ -30,7 +30,7 @@ import org.eclipse.buildship.core.projectimport.ProjectPreviewJob
 import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper
 import org.eclipse.buildship.core.util.progress.AsyncHandler
 import org.eclipse.buildship.core.workspace.NewProjectHandler;
-import org.eclipse.buildship.core.workspace.SynchronizeGradleProjectsJob
+import org.eclipse.buildship.core.workspace.SynchronizeCompositeJob
 
 abstract class ProjectImportSpecification extends Specification {
 
@@ -104,7 +104,7 @@ abstract class ProjectImportSpecification extends Specification {
         configuration.projectDir = location
         configuration.applyWorkingSets = true
         configuration.workingSets = []
-        SynchronizeGradleProjectsJob.newImportProjectJob(configuration.toFixedAttributes(), NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP)
+        SynchronizeCompositeJob.newImportProjectJob(configuration.toFixedAttributes(), NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP)
     }
 
     private static def newProjectPreviewJob(File location, GradleDistribution distribution, FutureCallback<Pair<OmniBuildEnvironment, OmniGradleBuildStructure>> resultHandler) {

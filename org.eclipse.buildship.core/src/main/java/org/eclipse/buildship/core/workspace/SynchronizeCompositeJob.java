@@ -46,7 +46,7 @@ import org.eclipse.buildship.core.util.progress.ToolingApiWorkspaceJob;
 /**
  * Combines the given Gradle builds into a composite build and synchronizes them with their workspace counterparts.
  */
-public class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJob {
+public class SynchronizeCompositeJob extends ToolingApiWorkspaceJob {
     private final FetchStrategy fetchStrategy;
     private final NewProjectHandler newProjectHandler;
     private final Set<FixedRequestAttributes> buildsToSynchronize;
@@ -56,32 +56,32 @@ public class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJob {
      * A job that force-refreshes all existing Gradle projects in the workspace, importing new sub-projects.
      * @return the job
      */
-    public static SynchronizeGradleProjectsJob newForceRefreshWorkspaceJob() {
-        Set<FixedRequestAttributes> buildsToSynchronize = SynchronizeGradleProjectsJob.getBuildsInComposite();
-        return new SynchronizeGradleProjectsJob(buildsToSynchronize, NewProjectHandler.IMPORT_AND_MERGE, FetchStrategy.FORCE_RELOAD, AsyncHandler.NO_OP);
+    public static SynchronizeCompositeJob newForceRefreshWorkspaceJob() {
+        Set<FixedRequestAttributes> buildsToSynchronize = SynchronizeCompositeJob.getBuildsInComposite();
+        return new SynchronizeCompositeJob(buildsToSynchronize, NewProjectHandler.IMPORT_AND_MERGE, FetchStrategy.FORCE_RELOAD, AsyncHandler.NO_OP);
     }
 
     /**
      * A job that refreshes all existing Gradle projects in the workspace. Does not import new sub-projects.
      * @return the job
      */
-    public static SynchronizeGradleProjectsJob newRefreshWorkspaceJob() {
-        Set<FixedRequestAttributes> buildsToSynchronize = SynchronizeGradleProjectsJob.getBuildsInComposite();
-        return new SynchronizeGradleProjectsJob(buildsToSynchronize, NewProjectHandler.DONT_IMPORT, FetchStrategy.LOAD_IF_NOT_CACHED, AsyncHandler.NO_OP);
+    public static SynchronizeCompositeJob newRefreshWorkspaceJob() {
+        Set<FixedRequestAttributes> buildsToSynchronize = SynchronizeCompositeJob.getBuildsInComposite();
+        return new SynchronizeCompositeJob(buildsToSynchronize, NewProjectHandler.DONT_IMPORT, FetchStrategy.LOAD_IF_NOT_CACHED, AsyncHandler.NO_OP);
     }
 
     /**
      * A job that adds the project given by the {@link FixedRequestAttributes} to the composite and force-refreshes the workspace. The {@link NewProjectHandler} decides how to handle new projects.
      * @return the job
      */
-    public static SynchronizeGradleProjectsJob newImportProjectJob(FixedRequestAttributes newProject, NewProjectHandler newProjectHandler, AsyncHandler beforeSynchronization) {
+    public static SynchronizeCompositeJob newImportProjectJob(FixedRequestAttributes newProject, NewProjectHandler newProjectHandler, AsyncHandler beforeSynchronization) {
         Set<FixedRequestAttributes> buildsToSynchronize = Sets.newHashSet();
         buildsToSynchronize.addAll(getBuildsInComposite());
         buildsToSynchronize.add(newProject);
-        return new SynchronizeGradleProjectsJob(buildsToSynchronize, newProjectHandler, FetchStrategy.FORCE_RELOAD, beforeSynchronization);
+        return new SynchronizeCompositeJob(buildsToSynchronize, newProjectHandler, FetchStrategy.FORCE_RELOAD, beforeSynchronization);
     }
 
-    private SynchronizeGradleProjectsJob(Set<FixedRequestAttributes> buildsToSynchronize, NewProjectHandler newProjectHandler, FetchStrategy fetchStrategy, AsyncHandler beforeSynchronization) {
+    private SynchronizeCompositeJob(Set<FixedRequestAttributes> buildsToSynchronize, NewProjectHandler newProjectHandler, FetchStrategy fetchStrategy, AsyncHandler beforeSynchronization) {
         super("Synchronize Gradle projects with the Eclipse workspace", true);
         this.fetchStrategy = fetchStrategy;
         this.newProjectHandler = newProjectHandler;

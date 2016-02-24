@@ -36,7 +36,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
         setup:
         def applyJavaPlugin = false
         File projectLocation = newProject(projectDescriptorExists, applyJavaPlugin)
-        SynchronizeGradleProjectsJob job = newSynchronizeGradleProjectsJob(projectLocation)
+        SynchronizeCompositeJob job = newSynchronizeGradleProjectsJob(projectLocation)
 
         when:
         job.schedule()
@@ -52,7 +52,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
     def "Project descriptors should be created iff they don't already exist"(boolean applyJavaPlugin, boolean projectDescriptorExists, String descriptorComment) {
         setup:
         File rootProject = newProject(projectDescriptorExists, applyJavaPlugin)
-        SynchronizeGradleProjectsJob job = newSynchronizeGradleProjectsJob(rootProject)
+        SynchronizeCompositeJob job = newSynchronizeGradleProjectsJob(rootProject)
 
         when:
         job.schedule()
@@ -74,7 +74,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
     def "Imported projects always have Gradle builder and nature"(boolean projectDescriptorExists) {
         setup:
         File rootProject = newProject(projectDescriptorExists, false)
-        SynchronizeGradleProjectsJob job = newSynchronizeGradleProjectsJob(rootProject)
+        SynchronizeCompositeJob job = newSynchronizeGradleProjectsJob(rootProject)
 
         when:
         job.schedule()
@@ -92,7 +92,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
     def "Imported parent projects have filters to hide the content of the children and the build folders"() {
         setup:
         File rootProject = newMultiProject()
-        SynchronizeGradleProjectsJob job = newSynchronizeGradleProjectsJob(rootProject)
+        SynchronizeCompositeJob job = newSynchronizeGradleProjectsJob(rootProject)
 
         when:
         job.schedule()
@@ -112,7 +112,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
         File rootProject = newMultiProject()
 
         when:
-        SynchronizeGradleProjectsJob job = newSynchronizeGradleProjectsJob(rootProject)
+        SynchronizeCompositeJob job = newSynchronizeGradleProjectsJob(rootProject)
         job.schedule()
         job.join()
 
@@ -141,7 +141,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
         project.delete(false, true, new NullProgressMonitor())
 
         when:
-        SynchronizeGradleProjectsJob job = newSynchronizeGradleProjectsJob(new File(workspaceRootLocation, "projectname"))
+        SynchronizeCompositeJob job = newSynchronizeGradleProjectsJob(new File(workspaceRootLocation, "projectname"))
         job.schedule()
         job.join()
 
@@ -152,7 +152,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
     def "Can import project located in workspace folder and with custom root name"() {
         setup:
         File rootProject = newProjectWithCustomNameInWorkspaceFolder()
-        SynchronizeGradleProjectsJob job = newSynchronizeGradleProjectsJob(rootProject)
+        SynchronizeCompositeJob job = newSynchronizeGradleProjectsJob(rootProject)
 
         when:
         job.schedule()
@@ -223,7 +223,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
         importB.join()
 
         when:
-        def refreshWorkspace = SynchronizeGradleProjectsJob.newForceRefreshWorkspaceJob()
+        def refreshWorkspace = SynchronizeCompositeJob.newForceRefreshWorkspaceJob()
         new File(projectA, 'settings.gradle') << "rootProject.name = 'projectB'"
         new File(projectB, 'settings.gradle') << "rootProject.name = 'projectA'"
         refreshWorkspace.schedule()
@@ -259,7 +259,7 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
         }
 
         when:
-        def refreshWorkspace = SynchronizeGradleProjectsJob.newForceRefreshWorkspaceJob()
+        def refreshWorkspace = SynchronizeCompositeJob.newForceRefreshWorkspaceJob()
         refreshWorkspace.schedule()
         refreshWorkspace.join()
 
@@ -317,10 +317,10 @@ class SynchronizeGradleProjectJob2Test extends BuildshipTestSpecification {
         root
     }
 
-    def SynchronizeGradleProjectsJob newSynchronizeGradleProjectsJob(File location) {
+    def SynchronizeCompositeJob newSynchronizeGradleProjectsJob(File location) {
         def distribution = GradleDistributionWrapper.from(GradleDistribution.fromBuild()).toGradleDistribution()
         def rootRequestAttributes = new FixedRequestAttributes(location, null, distribution, null, ImmutableList.of(), ImmutableList.of())
-        SynchronizeGradleProjectsJob.newImportProjectJob(rootRequestAttributes, NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP)
+        SynchronizeCompositeJob.newImportProjectJob(rootRequestAttributes, NewProjectHandler.IMPORT_AND_MERGE, AsyncHandler.NO_OP)
     }
 
 }
