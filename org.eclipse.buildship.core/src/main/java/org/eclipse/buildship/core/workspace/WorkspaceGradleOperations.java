@@ -11,7 +11,11 @@
 
 package org.eclipse.buildship.core.workspace;
 
+import java.util.Set;
+
 import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
+import com.gradleware.tooling.toolingmodel.OmniEclipseWorkspace;
+import com.gradleware.tooling.toolingmodel.repository.FixedRequestAttributes;
 
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.jdt.core.IJavaProject;
@@ -23,11 +27,11 @@ import org.eclipse.jdt.core.IJavaProject;
 public interface WorkspaceGradleOperations {
 
     /**
-     * Synchronizes the given Gradle build with the Eclipse workspace. The algorithm is as follows:
+     * Synchronizes the given Gradle composite build with the Eclipse workspace. The algorithm is as follows:
      * <p/>
      * <ol>
      * <li>
-     * Uncouple all open workspace projects for which there is no corresponding Gradle project in the Gradle build anymore
+     * Uncouple all open workspace projects for which there is no corresponding Gradle project in the Gradle composite build anymore
      * <ol>
      * <li>the Gradle resource filter is removed</li>
      * <li>the Gradle nature is removed</li>
@@ -72,11 +76,12 @@ public interface WorkspaceGradleOperations {
      * </li>
      * </ol>
      *
-     * @param gradleBuild           the Gradle build to synchronize
+     * @param gradleWorkspace       the composite build to synchronize
+     * @param requestAttributes     the builds that are part of the composite
      * @param newProjectHandler     what to do with projects that are not imported yet
      * @param monitor               the monitor to report the progress on
      */
-    void synchronizeGradleBuildWithWorkspace(GradleBuildInWorkspace gradleBuild, NewProjectHandler newProjectHandler, IProgressMonitor monitor);
+    void synchronizeCompositeBuildWithWorkspace(OmniEclipseWorkspace gradleWorkspace, Set<FixedRequestAttributes> requestAttributes, NewProjectHandler newProjectHandler, IProgressMonitor monitor);
 
     /**
      * Updates the Gradle classpath container elements in a target Java project with the entries

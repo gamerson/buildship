@@ -35,7 +35,6 @@ import org.eclipse.buildship.core.CorePlugin;
 import org.eclipse.buildship.core.console.ProcessStreams;
 import org.eclipse.buildship.core.util.progress.DelegatingProgressListener;
 import org.eclipse.buildship.core.util.progress.ToolingApiWorkspaceJob;
-import org.eclipse.buildship.core.workspace.internal.DefaultGradleBuildInWorkspace;
 
 /**
  * Base class for jobs that synchronize a set of Gradle projects with their workspace counterparts.
@@ -63,14 +62,12 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
                 return;
             }
             OmniEclipseWorkspace gradleWorkspace = forceReloadEclipseWorkspace(requestAttributes, new SubProgressMonitor(monitor, 40));
-            for (FixedRequestAttributes attributes : requestAttributes) {
-                GradleBuildInWorkspace gradleBuild = DefaultGradleBuildInWorkspace.from(gradleWorkspace, attributes);
-                CorePlugin.workspaceGradleOperations().synchronizeGradleBuildWithWorkspace(
-                    gradleBuild,
-                    this.newProjectHandler,
-                    new SubProgressMonitor(monitor, 50)
+            CorePlugin.workspaceGradleOperations().synchronizeCompositeBuildWithWorkspace(
+                gradleWorkspace,
+                requestAttributes,
+                this.newProjectHandler,
+                new SubProgressMonitor(monitor, 50)
                 );
-            }
         } finally {
             manager.endRule(workspaceRoot);
         }

@@ -24,7 +24,7 @@ abstract class ProjectSynchronizationSpecification extends BuildshipTestSpecific
         Job job = new Job('') {
             protected IStatus run(IProgressMonitor monitor) {
                 Job.jobManager.beginRule(LegacyEclipseSpockTestHelper.workspace.root, monitor)
-                new DefaultWorkspaceGradleOperations().synchronizeGradleBuildWithWorkspace(gradleModel.build, newProjectHandler, new NullProgressMonitor())
+                new DefaultWorkspaceGradleOperations().synchronizeCompositeBuildWithWorkspace(gradleModel.workspace, [gradleModel.attributes] as Set, newProjectHandler, new NullProgressMonitor())
                 Job.jobManager.endRule(LegacyEclipseSpockTestHelper.workspace.root)
                 Status.OK_STATUS
             }

@@ -24,8 +24,6 @@ import com.gradleware.tooling.toolingmodel.repository.SimpleModelRepository
 import com.gradleware.tooling.toolingmodel.repository.TransientRequestAttributes
 
 import org.eclipse.buildship.core.CorePlugin
-import org.eclipse.buildship.core.workspace.GradleBuildInWorkspace
-import org.eclipse.buildship.core.workspace.internal.DefaultGradleBuildInWorkspace;;
 
 
 /**
@@ -33,10 +31,12 @@ import org.eclipse.buildship.core.workspace.internal.DefaultGradleBuildInWorkspa
  */
 abstract class GradleModel {
 
-    private GradleBuildInWorkspace build
+    private OmniEclipseWorkspace workspace
+    private FixedRequestAttributes requestAttributes
 
-    GradleModel(GradleBuildInWorkspace model) {
-        this.build = model
+    GradleModel(OmniEclipseWorkspace model, FixedRequestAttributes requestAttributes) {
+        this.workspace = model
+        this.requestAttributes = requestAttributes
     }
 
     /**
@@ -45,16 +45,16 @@ abstract class GradleModel {
      * @return the request attributes
      */
     public FixedRequestAttributes getAttributes() {
-        build.requestAttributes
+        requestAttributes
     }
 
     /**
-     * The OmniEclipseGradleBuild model of the loaded project.
+     * The OmniEclipseWorkspace model of the loaded project.
      *
-     * @return the OmniEclipseGradleBuild model
+     * @return the OmniEclipseWorkspace model
      */
-    public GradleBuildInWorkspace getBuild() {
-        build
+    public OmniEclipseWorkspace getWorkspace() {
+        workspace
     }
 
     /**
@@ -63,7 +63,7 @@ abstract class GradleModel {
      * @return the OmniEclipseProject model
      */
     public OmniEclipseProject eclipseProject(String name) {
-        build.eclipseProjects.find { it.name == name }
+        workspace.openEclipseProjects.find { it.name == name }
     }
 
     /**
@@ -75,6 +75,6 @@ abstract class GradleModel {
         FixedRequestAttributes attributes = new FixedRequestAttributes(rootProjectFolder, null, GradleDistribution.fromBuild(), null, [], [])
         CompositeModelRepository modelRepository = CorePlugin.modelRepositoryProvider().getCompositeModelRepository([attributes] as Set)
         OmniEclipseWorkspace workspace = modelRepository.fetchEclipseWorkspace(new TransientRequestAttributes(false, System.out, System.err, System.in, [], [], GradleConnector.newCancellationTokenSource().token()), FetchStrategy.FORCE_RELOAD)
-        new GradleModel(DefaultGradleBuildInWorkspace.from(workspace, attributes)) {}
+        new GradleModel(workspace, attributes) {}
     }
 }
