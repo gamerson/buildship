@@ -42,10 +42,12 @@ import org.eclipse.buildship.core.workspace.internal.DefaultGradleBuildInWorkspa
  */
 public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJob {
     private final FetchStrategy fetchStrategy;
+    private final NewProjectHandler newProjectHandler;
 
-    public SynchronizeGradleProjectsJob(String description, boolean notifyUserOfBuildFailures, FetchStrategy fetchStrategy) {
+    public SynchronizeGradleProjectsJob(NewProjectHandler newProjectHandler, FetchStrategy fetchStrategy, String description, boolean notifyUserOfBuildFailures) {
         super(description, notifyUserOfBuildFailures);
         this.fetchStrategy = fetchStrategy;
+        this.newProjectHandler = newProjectHandler;
     }
 
     @Override
@@ -65,7 +67,7 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
                 GradleBuildInWorkspace gradleBuild = DefaultGradleBuildInWorkspace.from(gradleWorkspace, attributes);
                 CorePlugin.workspaceGradleOperations().synchronizeGradleBuildWithWorkspace(
                     gradleBuild,
-                    getNewProjectHandler(gradleBuild),
+                    this.newProjectHandler,
                     new SubProgressMonitor(monitor, 50)
                 );
             }
@@ -84,13 +86,6 @@ public abstract class SynchronizeGradleProjectsJob extends ToolingApiWorkspaceJo
      * The request attributes of the root projects to synchronize.
      */
     protected abstract Set<FixedRequestAttributes> getBuildsToSynchronize();
-
-    /**
-     * Determines what to do with not yet imported projects in the given build.
-     */
-    protected NewProjectHandler getNewProjectHandler(GradleBuildInWorkspace gradleBuild) {
-        return NewProjectHandler.IMPORT_AND_MERGE;
-    }
 
     private OmniEclipseWorkspace forceReloadEclipseWorkspace(Set<FixedRequestAttributes> fixedRequestAttributes, IProgressMonitor monitor) {
         monitor.beginTask("Loading workspace model", IProgressMonitor.UNKNOWN);

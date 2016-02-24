@@ -26,25 +26,17 @@ import org.eclipse.core.resources.ResourcesPlugin;
  */
 public class RefreshGradleProjectsJob extends SynchronizeGradleProjectsJob {
 
-    private final NewProjectHandler newProjectHandler;
-
     public RefreshGradleProjectsJob() {
         this(FetchStrategy.FORCE_RELOAD, NewProjectHandler.IMPORT_AND_MERGE);
     }
 
     public RefreshGradleProjectsJob(FetchStrategy fetchStrategy, NewProjectHandler newProjectHandler) {
-        super("Synchronize workspace projects with Gradle counterparts", true, fetchStrategy);
-        this.newProjectHandler = newProjectHandler;
+        super(newProjectHandler, fetchStrategy, "Synchronize workspace projects with Gradle counterparts", true);
     }
 
     @Override
     protected Set<FixedRequestAttributes> getBuildsToSynchronize() {
         List<IProject> allProjects = Arrays.asList(ResourcesPlugin.getWorkspace().getRoot().getProjects());
         return getUniqueRootProjects(allProjects);
-    }
-
-    @Override
-    protected NewProjectHandler getNewProjectHandler(GradleBuildInWorkspace gradleBuild) {
-        return this.newProjectHandler;
     }
 }

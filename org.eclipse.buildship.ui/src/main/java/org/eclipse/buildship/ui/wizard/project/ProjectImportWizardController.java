@@ -35,6 +35,7 @@ import org.eclipse.ui.IWorkingSet;
 import org.eclipse.ui.IWorkingSetManager;
 import org.eclipse.ui.PlatformUI;
 
+import org.eclipse.buildship.core.gradle.Specs;
 import org.eclipse.buildship.core.projectimport.ProjectImportConfiguration;
 import org.eclipse.buildship.core.util.binding.Validators;
 import org.eclipse.buildship.core.util.collections.CollectionsUtils;
@@ -43,6 +44,7 @@ import org.eclipse.buildship.core.util.gradle.GradleDistributionValidator;
 import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper;
 import org.eclipse.buildship.core.util.gradle.GradleDistributionWrapper.DistributionType;
 import org.eclipse.buildship.core.util.progress.AsyncHandler;
+import org.eclipse.buildship.core.workspace.BuildSpecificNewProjectHandler;
 import org.eclipse.buildship.core.workspace.ImportGradleProjectJob;
 import org.eclipse.buildship.core.workspace.NewProjectHandler;
 import org.eclipse.buildship.ui.util.workbench.WorkbenchUtils;
@@ -179,7 +181,7 @@ public class ProjectImportWizardController {
     public boolean performImportProject(AsyncHandler initializer, NewProjectHandler newProjectHandler) {
         FixedRequestAttributes rootRequestAttributes = this.configuration.toFixedAttributes();
         List<String> workingSets = this.configuration.getApplyWorkingSets().getValue() ? ImmutableList.copyOf(this.configuration.getWorkingSets().getValue()) : ImmutableList.<String>of();
-        ImportGradleProjectJob synchronizeJob = new ImportGradleProjectJob(rootRequestAttributes, new AssignWorkingSetsWrapper(newProjectHandler, workingSets), initializer);
+        ImportGradleProjectJob synchronizeJob = new ImportGradleProjectJob(rootRequestAttributes, new ImportedBuildSpecificNewProjectHandler(newProjectHandler, workingSets, rootRequestAttributes.getProjectDir()), initializer);
         synchronizeJob.addJobChangeListener(new JobChangeAdapter() {
 
             @Override
@@ -194,34 +196,41 @@ public class ProjectImportWizardController {
     }
 
     /**
-     * Assigns the given workingsets to the projects after import.
+     * Makes sure that the import-specific configuration (like assinging working sets) is only applied
+     * to projects that are part of the build being imported, not other ones in the composite.
      */
-    private static final class AssignWorkingSetsWrapper implements NewProjectHandler {
+    private static final class ImportedBuildSpecificNewProjectHandler extends BuildSpecificNewProjectHandler {
 
-        private final NewProjectHandler delegate;
+        private final NewProjectHandler delegateForImportedBuild;
         private final List<String> workingSetNames;
+        private final File rootProjectDir;
 
-        public AssignWorkingSetsWrapper(NewProjectHandler delegate, List<String> workingSetNames) {
-            this.delegate = delegate;
+        public ImportedBuildSpecificNewProjectHandler(NewProjectHandler delegateForImportedBuild, List<String> workingSetNames, File rootProjectDir) {
+            super(rootProjectDir, IMPORT_AND_MERGE);
+            this.delegateForImportedBuild = delegateForImportedBuild;
             this.workingSetNames = workingSetNames;
+            this.rootProjectDir = rootProjectDir;
         }
 
         @Override
-        public boolean shouldImport(OmniEclipseProject projectModel) {
-            return this.delegate.shouldImport(projectModel);
+        protected boolean shouldImportProjectInBuild(OmniEclipseProject projectModel) {
+            return this.delegateForImportedBuild.shouldImport(projectModel);
         }
 
         @Override
-        public boolean shouldOverwriteDescriptor(IProjectDescription descriptor, OmniEclipseProject projectModel) {
-            return this.delegate.shouldOverwriteDescriptor(descriptor, projectModel);
+        protected boolean shouldOverwriteDescriptorOfProjectInBuild(IProjectDescription descriptor, OmniEclipseProject projectModel) {
+            return this.delegateForImportedBuild.shouldOverwriteDescriptor(descriptor, projectModel);
         }
 
         @Override
-        public void afterImport(IProject project, OmniEclipseProject projectModel) {
-            this.delegate.afterImport(project, projectModel);
-            IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
-            IWorkingSet[] workingSets = WorkingSetUtils.toWorkingSets(this.workingSetNames);
-            workingSetManager.addToWorkingSets(project, workingSets);
+        protected void afterImportOfProjectInBuild(IProject project, OmniEclipseProject projectModel) {
+            this.delegateForImportedBuild.afterImport(project, projectModel);
+            boolean isPartOfImportedBuild = Specs.eclipseProjectIsSubProjectOf(this.rootProjectDir).isSatisfiedBy(projectModel);
+            if (isPartOfImportedBuild) {
+                IWorkingSetManager workingSetManager = PlatformUI.getWorkbench().getWorkingSetManager();
+                IWorkingSet[] workingSets = WorkingSetUtils.toWorkingSets(this.workingSetNames);
+                workingSetManager.addToWorkingSets(project, workingSets);
+            }
         }
 
     }
