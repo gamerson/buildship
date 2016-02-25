@@ -101,7 +101,7 @@ public class SynchronizeCompositeJob extends ToolingApiWorkspaceJob {
             if (this.buildsToSynchronize.isEmpty()) {
                 return;
             }
-            OmniEclipseWorkspace gradleWorkspace = forceReloadEclipseWorkspace(new SubProgressMonitor(monitor, 40));
+            OmniEclipseWorkspace gradleWorkspace = loadEclipseWorkspace(new SubProgressMonitor(monitor, 40));
             CorePlugin.workspaceGradleOperations().synchronizeCompositeBuildWithWorkspace(
                 gradleWorkspace,
                 this.buildsToSynchronize,
@@ -113,7 +113,7 @@ public class SynchronizeCompositeJob extends ToolingApiWorkspaceJob {
         }
     }
 
-    private OmniEclipseWorkspace forceReloadEclipseWorkspace(IProgressMonitor monitor) {
+    private OmniEclipseWorkspace loadEclipseWorkspace(IProgressMonitor monitor) {
         monitor.beginTask("Loading workspace model", IProgressMonitor.UNKNOWN);
         try {
             ProcessStreams streams = CorePlugin.processStreamsProvider().getBackgroundJobProcessStreams();
