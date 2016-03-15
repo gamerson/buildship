@@ -21,6 +21,7 @@ import com.google.common.base.Optional;
 import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Lists;
 
 import com.gradleware.tooling.toolingmodel.OmniEclipseGradleBuild;
 import com.gradleware.tooling.toolingmodel.OmniEclipseProject;
@@ -171,10 +172,6 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
                 CorePlugin.projectConfigurationManager().saveProjectConfiguration(configuration, workspaceProject);
             }
 
-            // update filters
-            List<File> filteredSubFolders = getChildProjectDirectories(project);
-            ResourceFilter.updateFilters(workspaceProject, filteredSubFolders, new SubProgressMonitor(monitor, 1));
-
             // update linked resources
             LinkedResourcesUpdater.update(workspaceProject, project.getLinkedResources(), new SubProgressMonitor(monitor, 1));
 
@@ -322,27 +319,38 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
         return CorePlugin.workspaceOperations().normalizeProjectName(project.getName(), project.getProjectDirectory());
     }
 
-    private List<File> getChildProjectDirectories(OmniEclipseProject project) {
-        return FluentIterable.from(project.getChildren()).transform(new Function<OmniEclipseProject, File>() {
+    private List<IFolder> getSubProjectFolders(OmniEclipseProject project, final IProject workspaceProject) {
+        return FluentIterable.from(project.getChildren()).transform(new Function<OmniEclipseProject, IFolder>() {
 
             @Override
-            public File apply(OmniEclipseProject childProject) {
-                return childProject.getProjectDirectory();
+            public IFolder apply(OmniEclipseProject childProject) {
+                File dir = childProject.getProjectDirectory();
+                IPath relativePath = RelativePathUtils.getRelativePath(workspaceProject.getLocation(), new Path(dir.getPath()));
+                return workspaceProject.getFolder(relativePath);
             }
         }).toList();
     }
 
     private void markDerivedFolders(OmniEclipseProject gradleProject, IProject workspaceProject, IProgressMonitor monitor) throws CoreException {
+        List<IFolder> derivedResources = Lists.newArrayList();
+
         IFolder buildDirectory = getBuildDirectory(gradleProject, workspaceProject);
+        derivedResources.add(buildDirectory);
         if (buildDirectory.exists()) {
-            CorePlugin.workspaceOperations().markAsDerived(buildDirectory, monitor);
             CorePlugin.workspaceOperations().markAsBuildFolder(buildDirectory);
         }
 
         IFolder dotGradle = workspaceProject.getFolder(".gradle");
-        if (dotGradle.exists()) {
-            CorePlugin.workspaceOperations().markAsDerived(dotGradle, monitor);
+        derivedResources.add(dotGradle);
+
+        for (IFolder subProjectFolder : getSubProjectFolders(gradleProject, workspaceProject)) {
+            derivedResources.add(subProjectFolder);
+            if (subProjectFolder.exists()) {
+                CorePlugin.workspaceOperations().markAsSubProject(subProjectFolder);
+            }
         }
+
+        DerivedResourcesUpdater.updateDerivedResources(workspaceProject, derivedResources, monitor);
     }
 
     private IFolder getBuildDirectory(OmniEclipseProject project, IProject workspaceProject) {
@@ -372,8 +380,8 @@ public final class DefaultWorkspaceGradleOperations implements WorkspaceGradleOp
         monitor.setWorkRemaining(2);
         monitor.subTask(String.format("Uncouple workspace project %s from Gradle", workspaceProject.getName()));
         try {
-            ResourceFilter.detachAllFilters(workspaceProject, monitor.newChild(1, SubMonitor.SUPPRESS_ALL_LABELS));
             CorePlugin.workspaceOperations().removeNature(workspaceProject, GradleProjectNature.ID, monitor.newChild(1, SubMonitor.SUPPRESS_ALL_LABELS));
+            DerivedResourcesUpdater.clearDerivedResources(workspaceProject, monitor.newChild(1, SubMonitor.SUPPRESS_ALL_LABELS));
             CorePlugin.projectConfigurationManager().deleteProjectConfiguration(workspaceProject);
         } finally {
             monitor.done();
